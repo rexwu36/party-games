@@ -260,7 +260,7 @@ function landing(err){
       h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
       h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v5")));
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v6")));
   (hashCode?name:code).focus();
 }
 
@@ -269,7 +269,7 @@ function hostSetup(){
   const saved=LS.get("sp:setup4");
   const ta=h("textarea",{id:"songs",spellcheck:"false"});ta.value=saved?.text??SAMPLE;
   const ans=h("select",{id:"ans"},[10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.ans||20)},s+" 秒")));
-  const clip=h("select",{id:"clip"},[5,10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.clip||15)},"播 "+s+" 秒")));
+  const clip=h("select",{id:"clip"},[0,5,10,15,20].map(s=>h("option",{value:s,selected:s===(saved?.play??0)},s?"只播 "+s+" 秒":"播到作答時間結束")));
   const rnd=h("input",{type:"checkbox",id:"rnd",checked:saved?.rnd??true,style:"width:auto"});
   const list=h("ul",{class:"songlist"});const err=h("p",{class:"err"});const info=h("p",{class:"muted"});
   const upd=()=>{
@@ -287,11 +287,11 @@ function hostSetup(){
       h("p",{class:"muted"},"每題 8 個選項。錯誤選項會從歌單和內建的 100 首熱門歌裡，挑發行年份接近或同一位歌手的歌，每題都不一樣，所以記得寫上年份。按「找 YouTube」打開搜尋，複製影片網址貼到該行後面即可；想從副歌開始播，就在最後加上時間，例如 1:05。"),
       info,list,err,
       h("div",{class:"row"},
-        h("label",{for:"clip",class:"grow"},"每首播放長度",clip),
+        h("label",{for:"clip",class:"grow"},"音樂播放長度",clip),
         h("label",{for:"ans",class:"grow"},"作答時間",ans),
         h("label",{for:"rnd",class:"grow",style:"flex-direction:row;align-items:center;gap:8px"},rnd,"隨機順序")),
       h("button",{class:"go",onclick:()=>{const s=parseSongs(ta.value);if(s.length<2){err.textContent="至少要 2 首歌";return}
-        LS.set("sp:setup4",{text:ta.value,ans:+ans.value,clip:+clip.value,rnd:rnd.checked});
+        LS.set("sp:setup4",{text:ta.value,ans:+ans.value,play:+clip.value,rnd:rnd.checked});
         if(s.some(x=>x.vid))loadYT();
         openRoom(buildQuestions(s,rnd.checked),+ans.value,+clip.value)}},"開房間")));
 }
@@ -363,7 +363,7 @@ function openRoom(qs,limit,clip){
   function playClip(q,full){
     G.ytErr=null;
     if(!q.vid||!YTP||!YTP.loadVideoById)return false;
-    const o={videoId:q.vid,startSeconds:q.start||0};if(!full)o.endSeconds=(q.start||0)+G.clip;
+    const o={videoId:q.vid,startSeconds:q.start||0};if(!full)o.endSeconds=(q.start||0)+(G.clip||G.limit+3);
     try{YTP.loadVideoById(o);YTP.unMute&&YTP.unMute();YTP.setVolume&&YTP.setVolume(100);return true}catch(e){return false}
   }
   function stopMusic(){try{YTP&&YTP.stopVideo&&YTP.stopVideo()}catch(e){}}
@@ -490,7 +490,7 @@ function startPlayer(code,name){
     try{cl=await mqttConnect(BROKERS[bi],{will:{topic:up,payload:JSON.stringify({t:"bye",pid:tok}),qos:1}})}
     catch(e){status("連不上連線伺服器","請確認手機有網路；連 Wi-Fi 的話可以改用行動網路再試");return}
     const askJoin=setInterval(()=>{if(!joined&&!dead)pub({t:"join",name})},2000);
-    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v5）")}},15000);
+    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v6）")}},15000);
     cl.on("message",(topic,buf)=>{
       if(dead)return;const s=buf.toString();
       if(topic===base+"hello"){
