@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>搶答派對</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap">
+<style>
+/* Layout: a stage. Host = big projector screen; player = one-hand phone pad of four answer tiles */
+:root{
+  --bg:#1d1640; --bg2:#2a2160; --panel:#fff; --panel-ink:#1d1640; --ink:#fff; --muted:#bdb6e6;
+  --a:#f25f5c; --b:#1fb5a8; --c:#9b5de5; --d:#f39a2b; --good:#2bc46d; --bad:#e8434b;
+  --f-display:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-num:"Space Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(circle at 20% 0%,var(--bg2),var(--bg) 60%) fixed;color:var(--ink);font-family:var(--f-display);font-size:17px;line-height:1.5;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+main{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{margin:0;font-weight:900;line-height:1.2;text-wrap:balance}
+p{margin:0}
+.brand{font-weight:900;letter-spacing:.06em;font-size:1rem;color:var(--muted)}
+.brand b{color:var(--d)}
+.card{background:var(--panel);color:var(--panel-ink);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.narrow{max-width:440px;width:100%;margin:0 auto}
+label{font-weight:700;display:flex;flex-direction:column;gap:6px}
+input,textarea,select{font:inherit;color:var(--panel-ink);background:#f1effa;border:2px solid #d8d3f0;border-radius:10px;padding:12px;width:100%}
+input.code{font-family:var(--f-num);font-size:2rem;text-align:center;letter-spacing:.25em}
+textarea{min-height:320px;font-size:.95rem;line-height:1.5}
+button{font:inherit;font-weight:900;border:0;border-radius:12px;padding:14px 18px;cursor:pointer;background:var(--panel-ink);color:#fff;min-height:52px}
+button.go{background:var(--good);color:#fff}
+button.ghost{background:transparent;color:inherit;border:2px solid currentColor}
+button.link{background:none;color:var(--muted);text-decoration:underline;min-height:0;padding:6px;font-weight:700}
+button:disabled{opacity:.4;cursor:not-allowed}
+:focus-visible{outline:4px solid var(--d);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>.grow{flex:1 1 160px}
+.err{color:var(--bad);font-weight:700}
+.muted{color:var(--muted)}
+.card .muted{color:#6b6491}
+/* host lobby */
+.bigcode{font-family:var(--f-num);font-size:clamp(3rem,10vw,6.5rem);letter-spacing:.12em;line-height:1;color:var(--d)}
+.lobby{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center}
+.qr{background:#fff;padding:12px;border-radius:12px}
+.qr img,.qr canvas{display:block;width:200px;height:200px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--bg2);border:2px solid #4a3f8f;border-radius:99px;padding:6px 14px;font-weight:700}
+.chip.off{opacity:.4}
+/* question */
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.qnum{font-family:var(--f-num);color:var(--muted)}
+.qtext{background:var(--panel);color:var(--panel-ink);border-radius:16px;padding:28px 20px;text-align:center;font-size:clamp(1.4rem,4vw,2.6rem);font-weight:900}
+.timer{font-family:var(--f-num);font-size:2.4rem;width:90px;height:90px;border-radius:50%;display:grid;place-items:center;background:var(--c);flex:0 0 auto}
+.answered{font-family:var(--f-num);text-align:center}
+.answered b{font-size:2.4rem;display:block;line-height:1}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{display:flex;align-items:center;gap:14px;border-radius:14px;padding:18px;font-weight:900;font-size:clamp(1rem,2.6vw,1.6rem);color:#fff;min-height:84px;text-align:left}
+.opt .k{font-family:var(--f-num);background:rgba(0,0,0,.22);border-radius:8px;width:44px;height:44px;display:grid;place-items:center;flex:0 0 auto}
+.o0{background:var(--a)}.o1{background:var(--b)}.o2{background:var(--c)}.o3{background:var(--d)}
+.opt.dim{opacity:.25}
+.opt .cnt{margin-left:auto;font-family:var(--f-num)}
+.opt.right{outline:5px solid #fff;outline-offset:-5px}
+/* leaderboard */
+.board{display:flex;flex-direction:column;gap:8px}
+.brow{display:grid;grid-template-columns:3em minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--bg2);border-radius:12px;padding:12px 16px;font-weight:900;font-size:1.2rem}
+.brow .r{font-family:var(--f-num);color:var(--muted)}
+.brow .s{font-family:var(--f-num)}
+.brow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;text-align:center}
+.pod{border-radius:14px 14px 0 0;padding:14px 8px;font-weight:900;display:flex;flex-direction:column;gap:4px;justify-content:flex-end}
+.pod .nm{font-size:clamp(1rem,3vw,1.6rem);overflow-wrap:anywhere}
+.pod .s{font-family:var(--f-num)}
+.p1{background:var(--d);height:240px}.p2{background:var(--b);height:180px}.p3{background:var(--a);height:140px}
+/* player */
+.pad{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:58vh}
+.pad .opt{flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:1.05rem;min-height:120px}
+.pad .opt .k{width:56px;height:56px;font-size:1.6rem}
+.status{text-align:center;padding:40px 16px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.status .big{font-size:2.2rem;font-weight:900}
+.status.good{background:var(--good);border-radius:16px}
+.status.bad{background:var(--bad);border-radius:16px}
+.pts{font-family:var(--f-num);font-size:2rem}
+.me{display:flex;justify-content:space-between;font-weight:900;padding:8px 4px}
+.me .s{font-family:var(--f-num)}
+.banner{background:var(--d);color:var(--panel-ink);border-radius:10px;padding:8px 12px;font-weight:700;text-align:center}
+@media (max-width:640px){.lobby{grid-template-columns:1fr}.qr{justify-self:center}.opt{min-height:64px;padding:12px}.qtext{padding:20px 14px}}
+@media (prefers-reduced-motion:no-preference){.pop{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+"use strict";
+const PREFIX="qparty-zh-";
+const PRESETS={
+"年度大事：哪個不是這年發生的？":`2001 年，哪一件「不是」這年發生的？
+第一代 iPod 上市
+納莉颱風淹台北捷運
+*YouTube 成立
+電影《哈利波特：神秘的魔法石》上映
+
+2002 年，哪一件「不是」這年發生的？
+台灣正式加入 WTO
+*周杰倫發行《七里香》
+日韓世界盃
+歐元紙鈔開始流通
+
+2003 年，哪一件「不是」這年發生的？
+*台灣高鐵通車
+SARS 爆發
+Skype 上線
+伊拉克戰爭開打
+
+2004 年，哪一件「不是」這年發生的？
+Facebook 在哈佛宿舍誕生
+Gmail 在愚人節上線
+*王建民登上洋基大聯盟
+台北 101 開幕
+
+2005 年，哪一件「不是」這年發生的？
+*Twitter 成立
+YouTube 第一支影片上傳
+王建民洋基初登板
+日劇《一公升的眼淚》播出
+
+2006 年，哪一件「不是」這年發生的？
+冥王星被踢出九大行星
+*麥可傑克森過世
+世界盃決賽席丹頭槌
+王建民拿下 19 勝
+
+2007 年，哪一件「不是」這年發生的？
+第一代 iPhone 發表
+*雷曼兄弟倒閉
+台灣高鐵通車
+《哈利波特》最終集出版
+
+2008 年，哪一件「不是」這年發生的？
+北京奧運
+《海角七號》上映
+*《那些年，我們一起追的女孩》上映
+歐巴馬當選美國總統
+
+2009 年，哪一件「不是」這年發生的？
+比特幣誕生
+*Instagram 上線
+麥可傑克森過世
+《阿凡達》上映
+
+2010 年，哪一件「不是」這年發生的？
+章魚哥保羅神準預測世界盃
+*江南 Style 紅遍全球
+第一代 iPad 上市
+Instagram 上線
+
+2011 年，哪一件「不是」這年發生的？
+賈伯斯過世
+威廉王子與凱特大婚
+*林來瘋席捲 NBA
+《那些年》上映
+
+2012 年，哪一件「不是」這年發生的？
+*冰桶挑戰洗版
+林來瘋
+江南 Style
+馬雅預言的世界末日沒來
+
+2013 年，哪一件「不是」這年發生的？
+《冰雪奇緣》上映
+*寶可夢 GO 全民抓寶
+教宗本篤十六世退位
+英國喬治小王子出生
+
+2014 年，哪一件「不是」這年發生的？
+Flappy Bird 突然下架
+德國 7:1 血洗巴西
+冰桶挑戰
+*洋裝是藍黑還是白金之爭
+
+2015 年，哪一件「不是」這年發生的？
+藍黑／白金洋裝之爭
+*PPAP 洗腦全世界
+《星際大戰：原力覺醒》上映
+美國同婚全面合法
+
+2016 年，哪一件「不是」這年發生的？
+寶可夢 GO 北投抓寶暴走
+PPAP
+*指尖陀螺爆紅
+英國脫歐公投
+
+2017 年，哪一件「不是」這年發生的？
+台北世大運
+815 全台大停電
+*《復仇者聯盟：終局之戰》上映
+Nintendo Switch 發售
+
+2018 年，哪一件「不是」這年發生的？
+衛生紙之亂
+*Clubhouse 爆紅
+哈利王子與梅根大婚
+法國拿下世界盃冠軍
+
+2019 年，哪一件「不是」這年發生的？
+人類第一張黑洞照片
+*《鬼滅之刃：無限列車篇》上映
+巴黎聖母院大火
+《終局之戰》上映
+
+2020 年，哪一件「不是」這年發生的？
+口罩實名制
+*鮭魚之亂
+《集合啦！動物森友會》發售
+東京奧運宣布延期
+
+2021 年，哪一件「不是」這年發生的？
+長榮貨輪卡在蘇伊士運河
+*ChatGPT 上線
+鮭魚之亂
+《魷魚遊戲》爆紅
+
+2022 年，哪一件「不是」這年發生的？
+威爾史密斯奧斯卡賞巴掌
+*台灣蛋荒
+梅西拿下世界盃冠軍
+ChatGPT 上線
+
+2023 年，哪一件「不是」這年發生的？
+「芭比海默」電影對決
+*台灣隊奪世界 12 強冠軍
+經典賽大谷三振楚特封王
+台灣蛋荒
+
+2024 年，哪一件「不是」這年發生的？
+大谷翔平 50 轟 50 盜
+黃仁勳來台掀起旋風
+*DeepSeek 震撼科技股
+台灣隊奪世界 12 強冠軍
+
+2025 年，哪一件「不是」這年發生的？
+全網洗版「吉卜力風」AI 大頭貼
+Taylor Swift 宣布訂婚
+*美加墨世界盃開踢
+DeepSeek 震撼科技圈
+
+2026 年，哪一件「不是」這年發生的？
+米蘭冬奧
+世界棒球經典賽
+*洛杉磯奧運
+美加墨世界盃`,
+"Emoji 猜歌名":`🎵 猜歌名：👂🌊
+*張惠妹〈聽海〉
+梁靜茹〈勇氣〉
+伍佰〈挪威的森林〉
+孫燕姿〈遇見〉
+
+🎵 猜歌名：☀️❌⬇️
+周杰倫〈晴天〉
+*蔡依林〈日不落〉
+莫文蔚〈陰天〉
+孫燕姿〈天黑黑〉
+
+🎵 猜歌名：🏙️🤏❤️
+*王力宏〈大城小愛〉
+蘇打綠〈小情歌〉
+陶喆〈愛很簡單〉
+田馥甄〈小幸運〉
+
+🎵 猜歌名：💔😄
+張學友〈吻別〉
+*梁靜茹〈分手快樂〉
+告五人〈愛人錯過〉
+五月天〈擁抱〉
+
+🎵 猜歌名：🔵🌸🏺
+周杰倫〈七里香〉
+周杰倫〈稻香〉
+*周杰倫〈青花瓷〉
+周杰倫〈告白氣球〉
+
+🎵 猜歌名：🎉🐶
+*五月天〈派對動物〉
+五月天〈倔強〉
+S.H.E〈Super Star〉
+蕭敬騰〈王妃〉
+
+🎵 猜歌名：🤏🍀
+蘇打綠〈小情歌〉
+*田馥甄〈小幸運〉
+光良〈童話〉
+鄧紫棋〈泡沫〉
+
+🎵 猜歌名：💋👋
+*張學友〈吻別〉
+梁靜茹〈分手快樂〉
+王菲〈紅豆〉
+張惠妹〈聽海〉
+
+🎵 猜歌名：🇳🇴🌲🌲
+草東沒有派對〈大風吹〉
+*伍佰〈挪威的森林〉
+茄子蛋〈浪子回頭〉
+周杰倫〈稻香〉
+
+🎵 猜歌名：💌🎈
+周杰倫〈晴天〉
+周杰倫〈青花瓷〉
+*周杰倫〈告白氣球〉
+光良〈童話〉
+
+🎵 猜歌名：🌑🌑
+莫文蔚〈陰天〉
+*孫燕姿〈天黑黑〉
+蔡依林〈日不落〉
+周杰倫〈晴天〉
+
+🎵 猜歌名：🔴🫘
+*王菲〈紅豆〉
+田馥甄〈小幸運〉
+周杰倫〈七里香〉
+張學友〈吻別〉
+
+🎵 猜歌名：🤏❤️🎵
+王力宏〈大城小愛〉
+陶喆〈愛很簡單〉
+*蘇打綠〈小情歌〉
+告五人〈愛人錯過〉
+
+🎵 猜歌名：🌊👦🔙
+*茄子蛋〈浪子回頭〉
+張惠妹〈聽海〉
+伍佰〈挪威的森林〉
+草東沒有派對〈大風吹〉
+
+🎵 猜歌名：🌬️🌬️
+茄子蛋〈浪子回頭〉
+*草東沒有派對〈大風吹〉
+五月天〈派對動物〉
+鄧紫棋〈泡沫〉
+
+🎵 猜歌名：🧚📖
+*光良〈童話〉
+周杰倫〈告白氣球〉
+蘇打綠〈小情歌〉
+孫燕姿〈天黑黑〉
+
+🎵 猜歌名：🌾👃
+周杰倫〈七里香〉
+*周杰倫〈稻香〉
+周杰倫〈青花瓷〉
+周杰倫〈晴天〉
+
+🎵 猜歌名：❤️👤❌🚶
+梁靜茹〈分手快樂〉
+田馥甄〈小幸運〉
+*告五人〈愛人錯過〉
+王力宏〈大城小愛〉
+
+🎵 猜歌名：🫧
+*鄧紫棋〈泡沫〉
+光良〈童話〉
+王菲〈紅豆〉
+蕭敬騰〈王妃〉
+
+🎵 猜歌名：👑👸
+五月天〈派對動物〉
+S.H.E〈Super Star〉
+*蕭敬騰〈王妃〉
+蔡依林〈日不落〉`
+};
+
+const $=(s,r=document)=>r.querySelector(s);
+function h(tag,attrs={},...kids){const el=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(v==null||v===false)continue;if(k.startsWith("on"))el.addEventListener(k.slice(2),v);else if(k==="class")el.className=v;else if(k==="style")el.style.cssText=v;else el.setAttribute(k,v===true?"":v)}for(const k of kids.flat()){if(k==null||k===false)continue;el.append(k instanceof Node?k:document.createTextNode(String(k)))}return el}
+const app=$("#app");
+const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const KEYS=["A","B","C","D"];
+let wakeLock=null;async function keepAwake(){try{wakeLock=await navigator.wakeLock?.request("screen")}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&wakeLock)keepAwake()});
+function baseURL(){return location.href.split("#")[0]}
+function brand(){return h("p",{class:"brand"},"搶答",h("b",{},"派對"))}
+
+/* ================= LANDING / JOIN ================= */
+function landing(err){
+  const saved=LS.get("qp:player")||{};
+  const hashCode=(location.hash.match(/\d{6}/)||[])[0];
+  const code=h("input",{class:"code",id:"code",inputmode:"numeric",maxlength:"6",placeholder:"000000",value:hashCode||"",autocomplete:"off"});
+  const name=h("input",{id:"nick",maxlength:"12",placeholder:"你的暱稱",value:saved.name||"",autocomplete:"off"});
+  const msg=h("p",{class:"err"},err||"");
+  const go=()=>{const c=code.value.replace(/\D/g,"");const n=name.value.trim();
+    if(c.length!==6){msg.textContent="房間碼是 6 位數字";return}
+    if(!n){msg.textContent="請輸入暱稱";return}
+    startPlayer(c,n)};
+  [code,name].forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter")go()}));
+  app.replaceChildren(
+    h("div",{class:"narrow",style:"display:flex;flex-direction:column;gap:18px;margin-top:6vh"},
+      h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
+      h("div",{class:"card"},
+        h("label",{for:"code"},"房間碼",code),
+        h("label",{for:"nick"},"暱稱",name),
+        msg,
+        h("button",{class:"go",onclick:go},"加入遊戲")),
+      h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間"))
+    ));
+  (hashCode?name:code).focus();
+}
+
+/* ================= HOST ================= */
+function parseQuiz(text){
+  const blocks=text.replace(/\r/g,"").split(/\n\s*\n/).map(b=>b.split("\n").map(s=>s.trim()).filter(Boolean)).filter(b=>b.length);
+  const qs=[],errs=[];
+  blocks.forEach((b,i)=>{
+    const [q,...opts]=b;
+    const ci=opts.findIndex(o=>o.startsWith("*"));
+    const clean=opts.map(o=>o.replace(/^\*\s*/,""));
+    if(clean.length<2||clean.length>4) errs.push(`第 ${i+1} 題需要 2～4 個選項（目前 ${clean.length} 個）`);
+    else if(ci<0) errs.push(`第 ${i+1} 題沒有標出正確答案（在正確選項前面加 *）`);
+    else qs.push({q,opts:clean,ans:ci});
+  });
+  return {qs,errs};
+}
+function hostSetup(){
+  const saved=LS.get("qp:quiz");
+  const ta=h("textarea",{id:"quiz",spellcheck:"false"});
+  ta.value=saved?.text??PRESETS[Object.keys(PRESETS)[0]];
+  const time=h("select",{id:"time"},[10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.time||20)},s+" 秒")));
+  const info=h("p",{class:"muted"});const err=h("p",{class:"err"});
+  const upd=()=>{const {qs,errs}=parseQuiz(ta.value);info.textContent=`共 ${qs.length} 題`;err.textContent=errs.slice(0,3).join("；")};
+  ta.addEventListener("input",upd);upd();
+  app.replaceChildren(
+    h("header",{class:"row",style:"justify-content:space-between"},h("div",{},brand(),h("h1",{},"準備題目")),h("button",{class:"link",onclick:()=>landing()},"← 回到加入畫面")),
+    h("div",{class:"card"},
+      h("div",{class:"row"},h("span",{style:"font-weight:700"},"載入題庫："),
+        Object.keys(PRESETS).map(k=>h("button",{class:"ghost",style:"min-height:40px;padding:6px 12px",onclick:()=>{ta.value=PRESETS[k];upd()}},k))),
+      h("label",{for:"quiz"},"題目（每題之間空一行；第一行是題目，下面 2～4 行是選項，正確答案前面加 *）",ta),
+      info,err,
+      h("div",{class:"row"},h("label",{for:"time",class:"grow",style:"flex-direction:row;align-items:center;gap:10px"},"每題作答時間",time),
+        h("button",{class:"go grow",onclick:()=>{const {qs,errs}=parseQuiz(ta.value);if(errs.length||!qs.length){err.textContent=errs[0]||"請至少輸入一題";return}
+          LS.set("qp:quiz",{text:ta.value,time:+time.value});openRoom(qs,+time.value)}},"開房間"))
+    ));
+}
+
+function openRoom(qs,limit){
+  const G={qs,limit,qi:-1,phase:"lobby",players:new Map(),deadline:0,start:0,tick:null,peer:null,code:""};
+  keepAwake();
+  app.replaceChildren(h("p",{class:"muted",style:"text-align:center;margin-top:20vh"},"正在開房間⋯"));
+  function create(){
+    G.code=String(Math.floor(100000+Math.random()*900000));
+    const peer=new Peer(PREFIX+G.code);G.peer=peer;
+    peer.on("open",()=>render());
+    peer.on("error",e=>{
+      if(e.type==="unavailable-id"){peer.destroy();create();return}
+      if(e.type==="network"||e.type==="server-error"||e.type==="socket-error"){setTimeout(()=>{if(peer.disconnected&&!peer.destroyed)peer.reconnect()},2000);return}
+      if(e.type==="browser-incompatible"){app.replaceChildren(h("p",{class:"err"},"這個瀏覽器不支援，請改用 Chrome 或 Safari。"));return}
+      console.warn(e);
+    });
+    peer.on("disconnected",()=>{setTimeout(()=>{if(!peer.destroyed)peer.reconnect()},1500)});
+    peer.on("connection",conn=>{
+      conn.on("data",d=>onData(conn,d));
+      conn.on("close",()=>{for(const p of G.players.values())if(p.conn===conn){p.conn=null;if(G.phase==="lobby")render()}});
+    });
+  }
+  create();
+
+  function send(p,msg){try{if(p.conn&&p.conn.open)p.conn.send(msg)}catch(e){}}
+  function ranked(){return [...G.players.values()].sort((a,b)=>b.score-a.score)}
+  function stateFor(p){
+    const r=ranked();const rank=r.indexOf(p)+1;
+    const q=G.qs[G.qi];
+    const base={t:"state",phase:G.phase,qi:G.qi,total:G.qs.length,score:p.score,rank,count:r.length,name:p.name};
+    if(G.phase==="question") return {...base,opts:q.opts,q:q.q,remain:Math.max(0,G.deadline-Date.now()),answered:p.ans!=null};
+    if(G.phase==="reveal"||G.phase==="board") return {...base,last:p.last,correct:q.opts[q.ans]};
+    return base;
+  }
+  function pushAll(){for(const p of G.players.values())send(p,stateFor(p))}
+
+  function onData(conn,d){
+    if(!d||typeof d!=="object")return;
+    if(d.t==="join"){
+      const name=String(d.name||"").trim().slice(0,12);const tok=String(d.tok||"");
+      if(!name){conn.send({t:"err",m:"請輸入暱稱"});return}
+      let p=G.players.get(name);
+      if(p&&p.tok!==tok){conn.send({t:"err",m:"這個暱稱已經有人用了，換一個吧"});return}
+      if(!p){p={name,tok,score:0,ans:null,last:null,conn:null};G.players.set(name,p)}
+      p.conn=conn;send(p,stateFor(p));
+      if(G.phase==="lobby")render();
+      return;
+    }
+    if(d.t==="ans"){
+      const p=[...G.players.values()].find(x=>x.conn===conn);
+      if(!p||G.phase!=="question"||d.q!==G.qi||p.ans!=null)return;
+      const c=d.c|0;if(c<0||c>=G.qs[G.qi].opts.length)return;
+      p.ans={c,ms:Date.now()-G.start};send(p,stateFor(p));
+      renderAnswered();
+      if([...G.players.values()].filter(x=>x.conn).every(x=>x.ans!=null))reveal();
+    }
+  }
+
+  function nextQ(){
+    G.qi++;
+    if(G.qi>=G.qs.length){G.phase="final";render();pushAll();return}
+    for(const p of G.players.values()){p.ans=null;p.last=null}
+    G.phase="question";G.start=Date.now();G.deadline=G.start+G.limit*1000;
+    render();pushAll();
+    clearInterval(G.tick);
+    G.tick=setInterval(()=>{const left=Math.ceil((G.deadline-Date.now())/1000);const t=$("#timer");if(t)t.textContent=Math.max(0,left);if(Date.now()>=G.deadline)reveal()},200);
+  }
+  function reveal(){
+    if(G.phase!=="question")return;
+    clearInterval(G.tick);
+    const q=G.qs[G.qi];
+    for(const p of G.players.values()){
+      if(p.ans&&p.ans.c===q.ans){const g=Math.round(500+500*Math.max(0,1-p.ans.ms/(G.limit*1000)));p.score+=g;p.last={ok:true,g}}
+      else p.last={ok:false,g:0,none:!p.ans};
+    }
+    G.phase="reveal";render();pushAll();
+  }
+  function renderAnswered(){const el=$("#answered");if(el)el.firstChild.textContent=[...G.players.values()].filter(p=>p.ans!=null).length}
+
+  function render(){
+    const q=G.qs[G.qi];
+    const players=[...G.players.values()];
+    if(G.phase==="lobby"){
+      const url=baseURL()+"#"+G.code;
+      const qr=h("div",{class:"qr"});
+      app.replaceChildren(
+        h("header",{},brand()),
+        h("div",{class:"lobby"},
+          h("div",{style:"display:flex;flex-direction:column;gap:10px;min-width:0"},
+            h("p",{class:"muted",style:"font-size:1.2rem"},"用手機打開這個網址，輸入房間碼："),
+            h("p",{style:"font-weight:900;font-size:1.2rem;overflow-wrap:anywhere"},baseURL()),
+            h("div",{class:"bigcode"},G.code)),
+          qr),
+        h("div",{class:"row",style:"justify-content:space-between"},
+          h("h2",{},`已加入 ${players.length} 人`),
+          h("button",{class:"go",disabled:!players.length,onclick:nextQ},`開始（共 ${G.qs.length} 題）`)),
+        h("div",{class:"chips"},players.length?players.map(p=>h("span",{class:"chip pop"+(p.conn?"":" off")},p.name)):h("p",{class:"muted"},"等待玩家加入⋯"))
+      );
+      try{new QRCode(qr,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M})}catch(e){qr.remove()}
+      return;
+    }
+    if(G.phase==="question"){
+      app.replaceChildren(
+        h("div",{class:"qtop"},h("span",{class:"qnum"},`第 ${G.qi+1} / ${G.qs.length} 題`),brand()),
+        h("div",{class:"qtext pop"},q.q),
+        h("div",{class:"row",style:"justify-content:space-between"},
+          h("div",{class:"timer",id:"timer"},G.limit),
+          h("div",{class:"answered",id:"answered"},h("b",{},"0"),"人已作答"),
+          h("button",{class:"ghost",onclick:reveal},"直接公布")),
+        h("div",{class:"opts"},q.opts.map((o,i)=>h("div",{class:"opt o"+i},h("span",{class:"k"},KEYS[i]),h("span",{},o))))
+      );
+      renderAnswered();return;
+    }
+    if(G.phase==="reveal"){
+      const counts=q.opts.map((_,i)=>players.filter(p=>p.ans&&p.ans.c===i).length);
+      const isLast=G.qi===G.qs.length-1;
+      app.replaceChildren(
+        h("div",{class:"qtop"},h("span",{class:"qnum"},`第 ${G.qi+1} / ${G.qs.length} 題`),brand()),
+        h("div",{class:"qtext"},q.q),
+        h("div",{class:"opts"},q.opts.map((o,i)=>h("div",{class:"opt o"+i+(i===q.ans?" right pop":" dim")},h("span",{class:"k"},i===q.ans?"✓":KEYS[i]),h("span",{},o),h("span",{class:"cnt"},counts[i]+" 人")))),
+        h("div",{class:"row",style:"justify-content:flex-end"},
+          h("button",{class:"go",onclick:()=>{G.phase="board";render();pushAll()}},"看排行榜"),
+          isLast?null:h("button",{class:"ghost",onclick:nextQ},"跳過排行，下一題"))
+      );return;
+    }
+    if(G.phase==="board"){
+      const r=ranked().slice(0,5);const isLast=G.qi===G.qs.length-1;
+      app.replaceChildren(
+        h("div",{class:"qtop"},h("h1",{},"目前排行"),brand()),
+        h("div",{class:"board"},r.map((p,i)=>h("div",{class:"brow pop"},h("span",{class:"r"},"#"+(i+1)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)))),
+        h("div",{class:"row",style:"justify-content:flex-end"},h("button",{class:"go",onclick:nextQ},isLast?"公布最終結果":"下一題"))
+      );return;
+    }
+    if(G.phase==="final"){
+      const r=ranked();
+      const pod=(p,cls,place)=>p?h("div",{class:"pod pop "+cls},h("span",{style:"font-size:1.8rem"},place),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)):h("div",{});
+      app.replaceChildren(
+        h("div",{class:"qtop"},h("h1",{},"最終結果"),brand()),
+        h("div",{class:"podium"},pod(r[1],"p2","🥈"),pod(r[0],"p1","🥇"),pod(r[2],"p3","🥉")),
+        h("div",{class:"board"},r.slice(3).map((p,i)=>h("div",{class:"brow"},h("span",{class:"r"},"#"+(i+4)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)))),
+        h("div",{class:"row",style:"justify-content:flex-end"},
+          h("button",{class:"ghost",onclick:()=>{for(const p of G.players.values()){p.score=0;p.ans=null;p.last=null}G.qi=-1;G.phase="lobby";render();pushAll()}},"同一群人再玩一次"),
+          h("button",{class:"ghost",onclick:()=>{G.peer.destroy();hostSetup()}},"換題目、關閉房間"))
+      );
+    }
+  }
+  document.addEventListener("keydown",e=>{
+    if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")return;
+    if(e.key===" "||e.key==="Enter"){const b=app.querySelector("button.go:not(:disabled)");if(b){e.preventDefault();b.click()}}
+  });
+  window.addEventListener("beforeunload",e=>{if(G.phase!=="lobby"&&G.phase!=="final"){e.preventDefault();e.returnValue=""}});
+}
+
+/* ================= PLAYER ================= */
+function startPlayer(code,name){
+  const saved=LS.get("qp:player")||{};
+  const tok=saved.tok||Math.random().toString(36).slice(2)+Date.now().toString(36);
+  LS.set("qp:player",{name,tok,code});
+  history.replaceState(null,"","#"+code);
+  keepAwake();
+  let peer=null,conn=null,S=null,joined=false,retry=null,dead=false,qStart=0;
+  status("連線中⋯","");
+  function connect(){
+    if(dead)return;
+    if(!peer||peer.destroyed){
+      peer=new Peer();
+      peer.on("open",open);
+      peer.on("error",e=>{
+        if(e.type==="peer-unavailable"){
+          if(!joined){dead=true;peer.destroy();landing("找不到這個房間，請確認房間碼");return}
+          schedule();return}
+        if(e.type==="browser-incompatible"){dead=true;status("這個瀏覽器不支援","請改用 Chrome 或 Safari");return}
+        schedule();
+      });
+      peer.on("disconnected",()=>{if(!peer.destroyed)peer.reconnect()});
+    }else if(peer.open)open();
+  }
+  function open(){
+    conn=peer.connect(PREFIX+code,{reliable:true});
+    conn.on("open",()=>{clearTimeout(retry);conn.send({t:"join",name,tok})});
+    conn.on("data",onMsg);
+    conn.on("close",()=>{if(!dead){status("連線中斷，重新連線中⋯","請保持這個頁面開著");schedule()}});
+  }
+  function schedule(){clearTimeout(retry);retry=setTimeout(()=>{if(peer&&peer.destroyed)peer=null;connect()},2500)}
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!dead&&(!conn||!conn.open))connect()});
+  connect();
+
+  function onMsg(d){
+    if(!d||typeof d!=="object")return;
+    if(d.t==="err"){dead=true;try{peer.destroy()}catch(e){}landing(d.m);return}
+    if(d.t!=="state")return;
+    joined=true;const prev=S;S=d;
+    if(S.phase==="question"&&(!prev||prev.phase!=="question"||prev.qi!==S.qi))qStart=Date.now()-((S.total&&0)||0);
+    draw();
+  }
+  function me(){return h("div",{class:"me"},h("span",{},S.name),h("span",{class:"s"},S.score+" 分"))}
+  function status(big,small,cls){
+    app.replaceChildren(h("div",{class:"narrow",style:"display:flex;flex-direction:column;gap:12px"},brand(),S?me():null,
+      h("div",{class:"status "+(cls||"")+" pop"},h("div",{class:"big"},big),small?h("div",{},small):null)));
+  }
+  function draw(){
+    if(S.phase==="lobby")return status("你已經加入了！","看大螢幕，等主持人開始");
+    if(S.phase==="question"){
+      if(S.answered)return status("已送出答案","等其他人作答⋯");
+      app.replaceChildren(h("div",{class:"narrow",style:"display:flex;flex-direction:column;gap:12px"},
+        h("div",{class:"me"},h("span",{class:"qnum"},`第 ${S.qi+1} / ${S.total} 題`),h("span",{class:"s"},S.score+" 分")),
+        h("p",{style:"font-weight:900;text-align:center"},S.q),
+        h("div",{class:"pad"},S.opts.map((o,i)=>h("button",{class:"opt o"+i,onclick:(e)=>{
+          app.querySelectorAll(".pad button").forEach(b=>b.disabled=true);
+          try{conn.send({t:"ans",q:S.qi,c:i})}catch(err){}
+          if(navigator.vibrate)navigator.vibrate(30);
+        }},h("span",{class:"k"},KEYS[i]),h("span",{},o))))));
+      return;
+    }
+    if(S.phase==="reveal"||S.phase==="board"){
+      const L=S.last||{ok:false,none:true};
+      if(L.ok)return status("答對了！",h("div",{},h("div",{class:"pts"},"+"+L.g),`目前第 ${S.rank} 名`),"good");
+      return status(L.none?"時間到":"答錯了",h("div",{},"正確答案：",h("b",{},S.correct),h("div",{style:"margin-top:6px"},`目前第 ${S.rank} 名`)),"bad");
+    }
+    if(S.phase==="final")return status(S.rank<=3?["🥇","🥈","🥉"][S.rank-1]+" 第 "+S.rank+" 名！":"第 "+S.rank+" 名",`總分 ${S.score} 分，共 ${S.count} 人參加`,S.rank<=3?"good":"");
+  }
+}
+
+/* ================= BOOT ================= */
+if(!window.Peer){app.replaceChildren(h("p",{class:"err",style:"margin-top:20vh;text-align:center"},"連線元件載入失敗，請確認網路後重新整理。"))}
+else landing();
+</script>
+</body>
+</html>

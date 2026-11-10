@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>猜歌派對</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Space+Mono:wght@700&display=swap">
+<style>
+/* Layout: a stage. Host = projector screen with a hidden player; phones = four answer tiles */
+:root{
+  --bg:#141033; --bg2:#231b55; --panel:#fff; --panel-ink:#141033; --ink:#fff; --muted:#b8b0e8;
+  --a:#f25f5c; --b:#1fb5a8; --c:#9b5de5; --d:#f39a2b; --good:#2bc46d; --bad:#e8434b;
+  --f-display:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-num:"Space Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(circle at 80% 0%,var(--bg2),var(--bg) 60%) fixed;color:var(--ink);font-family:var(--f-display);font-size:17px;line-height:1.5;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+main{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2{margin:0;font-weight:900;line-height:1.2;text-wrap:balance}
+p{margin:0}
+.brand{font-weight:900;letter-spacing:.06em;color:var(--muted)}
+.brand b{color:var(--d)}
+.card{background:var(--panel);color:var(--panel-ink);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.narrow{max-width:440px;width:100%;margin:0 auto}
+label{font-weight:700;display:flex;flex-direction:column;gap:6px}
+input,textarea,select{font:inherit;color:var(--panel-ink);background:#f1effa;border:2px solid #d8d3f0;border-radius:10px;padding:12px;width:100%}
+input.code{font-family:var(--f-num);font-size:2rem;text-align:center;letter-spacing:.25em}
+textarea{min-height:300px;font-size:.95rem;line-height:1.6}
+button{font:inherit;font-weight:900;border:0;border-radius:12px;padding:14px 18px;cursor:pointer;background:var(--panel-ink);color:#fff;min-height:52px}
+button.go{background:var(--good)}
+button.ghost{background:transparent;color:inherit;border:2px solid currentColor}
+button.link{background:none;color:var(--muted);text-decoration:underline;min-height:0;padding:6px;font-weight:700}
+button.sm{min-height:38px;padding:6px 12px;font-size:.92rem}
+button:disabled{opacity:.4;cursor:not-allowed}
+:focus-visible{outline:4px solid var(--d);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>.grow{flex:1 1 160px}
+.err{color:var(--bad);font-weight:700}
+.muted{color:var(--muted)}
+.card .muted{color:#6b6491}
+.songlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow:auto}
+.songlist li{display:grid;grid-template-columns:2em minmax(0,1fr) auto;gap:8px;align-items:center;border-bottom:1px solid #e6e2f6;padding:4px 0}
+.songlist .n{font-family:var(--f-num);color:#6b6491}
+.songlist .nm{overflow-wrap:anywhere}
+.tag{font-size:.8rem;font-weight:700;border-radius:99px;padding:2px 10px;white-space:nowrap}
+.tag.ok{background:#d9f5e5;color:#17703f}
+.tag.no{background:#fde7d2;color:#8a4a07;text-decoration:none}
+.bigcode{font-family:var(--f-num);font-size:clamp(3rem,10vw,6.5rem);letter-spacing:.12em;line-height:1;color:var(--d)}
+.lobby{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center}
+.qr{background:#fff;padding:12px;border-radius:12px}
+.qr img,.qr canvas{display:block;width:200px;height:200px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--bg2);border:2px solid #4a3f8f;border-radius:99px;padding:6px 14px;font-weight:700}
+.chip.off{opacity:.4}
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.qnum{font-family:var(--f-num);color:var(--muted)}
+.stage{position:relative;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:16/9;max-height:46vh;width:100%;max-width:100%;margin:0 auto}
+[hidden]{display:none!important}
+#yt-park{position:absolute;left:-9999px;top:0;width:320px;height:180px;z-index:5;border-radius:16px;overflow:hidden;background:#000}
+#yt-park iframe,#yt{position:absolute;inset:0;width:100%;height:100%;border:0}
+.cover{position:absolute;inset:0;display:grid;place-items:center;text-align:center;background:linear-gradient(135deg,var(--c),var(--bg2));z-index:2;padding:16px}
+.cover .big{font-size:clamp(1.6rem,5vw,3rem);font-weight:900}
+.eq{display:flex;gap:8px;justify-content:center;height:70px;align-items:flex-end;margin-bottom:12px}
+.eq i{display:block;width:14px;background:#fff;border-radius:4px;height:30%}
+@media (prefers-reduced-motion:no-preference){.eq i{animation:eq 1s ease-in-out infinite}.eq i:nth-child(2){animation-delay:.2s}.eq i:nth-child(3){animation-delay:.4s}.eq i:nth-child(4){animation-delay:.1s}.eq i:nth-child(5){animation-delay:.3s}
+ @keyframes eq{0%,100%{height:20%}50%{height:100%}}
+ .pop{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}}
+.timer{font-family:var(--f-num);font-size:2.4rem;width:90px;height:90px;border-radius:50%;display:grid;place-items:center;background:var(--c);flex:0 0 auto}
+.answered{font-family:var(--f-num);text-align:center}
+.answered b{font-size:2.4rem;display:block;line-height:1}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{display:flex;align-items:center;gap:14px;border-radius:14px;padding:16px;font-weight:900;font-size:clamp(1rem,2.4vw,1.5rem);color:#fff;min-height:76px;text-align:left}
+.opt .k{font-family:var(--f-num);background:rgba(0,0,0,.22);border-radius:8px;width:44px;height:44px;display:grid;place-items:center;flex:0 0 auto}
+.o0{background:var(--a)}.o1{background:var(--b)}.o2{background:var(--c)}.o3{background:var(--d)}
+.opt.dim{opacity:.25}
+.opt .cnt{margin-left:auto;font-family:var(--f-num);white-space:nowrap}
+.opt.right{outline:5px solid #fff;outline-offset:-5px}
+.board{display:flex;flex-direction:column;gap:8px}
+.brow{display:grid;grid-template-columns:3em minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--bg2);border-radius:12px;padding:12px 16px;font-weight:900;font-size:1.2rem}
+.brow .r{font-family:var(--f-num);color:var(--muted)}
+.brow .s{font-family:var(--f-num)}
+.brow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;text-align:center}
+.pod{border-radius:14px 14px 0 0;padding:14px 8px;font-weight:900;display:flex;flex-direction:column;gap:4px;justify-content:flex-end}
+.pod .nm{font-size:clamp(1rem,3vw,1.6rem);overflow-wrap:anywhere}
+.pod .s{font-family:var(--f-num)}
+.p1{background:var(--d);height:240px}.p2{background:var(--b);height:180px}.p3{background:var(--a);height:140px}
+.pad{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:56vh}
+.pad .opt{flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:1.05rem;min-height:120px}
+.pad .opt .k{width:52px;height:52px;font-size:1.5rem}
+.status{text-align:center;padding:40px 16px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.status .big{font-size:2.2rem;font-weight:900}
+.status.good{background:var(--good);border-radius:16px}
+.status.bad{background:var(--bad);border-radius:16px}
+.pts{font-family:var(--f-num);font-size:2rem}
+.me{display:flex;justify-content:space-between;font-weight:900;padding:8px 4px}
+.me .s{font-family:var(--f-num)}
+.note{background:var(--d);color:var(--panel-ink);border-radius:10px;padding:8px 12px;font-weight:700}
+@media (max-width:640px){.lobby{grid-template-columns:1fr}.qr{justify-self:center}.opt{min-height:60px;padding:12px}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div id="yt-park"><div id="yt"></div><div id="yt-cover" class="cover" hidden><div><div class="eq"><i></i><i></i><i></i><i></i><i></i></div><div class="big">這是哪首歌？</div><p id="ytmsg" style="margin-top:8px"></p></div></div></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+"use strict";
+const PREFIX="songparty-zh-";
+const SAMPLE=`# 一行一首：歌名　YouTube 網址　從第幾秒開始播（可省略）
+# 例：周杰倫〈晴天〉 https://www.youtube.com/watch?v=xxxxxxxxxxx 0:35
+# 沒有網址的歌，主持人要自己用 Spotify 或 YouTube 播
+張惠妹〈聽海〉 https://www.youtube.com/watch?v=mLk61pfiHQ0
+蔡依林〈日不落〉 https://www.youtube.com/watch?v=1GA8z-Wliew
+王力宏〈大城小愛〉 https://www.youtube.com/watch?v=J8mBwCEKRME
+梁靜茹〈分手快樂〉 https://www.youtube.com/watch?v=lBNYpPmjH8M
+周杰倫〈青花瓷〉 https://www.youtube.com/watch?v=Z8Mqw0b9ADs
+五月天〈派對動物〉 https://www.youtube.com/watch?v=Fn7NLWHJw4s
+田馥甄〈小幸運〉 https://www.youtube.com/watch?v=_sQSXwdtxlY
+張學友〈吻別〉 https://www.youtube.com/watch?v=mIF-nn_y2_8
+伍佰〈挪威的森林〉 https://www.youtube.com/watch?v=gPpZJlE0Ca8
+周杰倫〈告白氣球〉 https://www.youtube.com/watch?v=bu7nU9Mhpyo
+孫燕姿〈天黑黑〉 https://www.youtube.com/watch?v=zi8z6RPYGV0
+王菲〈紅豆〉 https://www.youtube.com/watch?v=5wmfXve11rM
+蘇打綠〈小情歌〉 https://www.youtube.com/watch?v=in8NNzwFa-s
+茄子蛋〈浪子回頭〉 https://www.youtube.com/watch?v=x3bDhtuC5yk
+草東沒有派對〈大風吹〉 https://www.youtube.com/watch?v=HqmpIQ9l-uA
+光良〈童話〉 https://www.youtube.com/watch?v=bBcp_ljCBGU
+周杰倫〈稻香〉 https://www.youtube.com/watch?v=sHD_z90ZKV0
+告五人〈愛人錯過〉 https://www.youtube.com/watch?v=6D79CYTxvOM
+鄧紫棋〈泡沫〉 https://www.youtube.com/watch?v=mGeiABBB5f8
+蕭敬騰〈王妃〉 https://www.youtube.com/watch?v=qnDlH_S4Fak`;
+
+const $=(s,r=document)=>r.querySelector(s);
+function h(tag,attrs={},...kids){const el=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(v==null||v===false)continue;if(k.startsWith("on"))el.addEventListener(k.slice(2),v);else if(k==="class")el.className=v;else if(k==="style")el.style.cssText=v;else el.setAttribute(k,v===true?"":v)}for(const k of kids.flat()){if(k==null||k===false)continue;el.append(k instanceof Node?k:document.createTextNode(String(k)))}return el}
+const app=$("#app");
+const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const KEYS=["A","B","C","D"];
+let wakeLock=null;async function keepAwake(){try{wakeLock=await navigator.wakeLock?.request("screen")}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&wakeLock)keepAwake()});
+function baseURL(){return location.href.split("#")[0]}
+function brand(){return h("p",{class:"brand"},"猜歌",h("b",{},"派對"))}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- song list parsing ---------- */
+function parseSongs(text){
+  const out=[];
+  for(let line of text.replace(/\r/g,"").split("\n")){
+    line=line.trim();if(!line||line.startsWith("#"))continue;
+    let vid=null,start=0;
+    const m=line.match(/https?:\/\/\S+/);
+    if(m){
+      const u=m[0];
+      const id=(u.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/)([\w-]{11})/)||[])[1];
+      if(id)vid=id;
+      const t=(u.match(/[?&]t=(\d+)/)||[])[1];if(t)start=+t;
+      line=line.replace(u," ");
+    }
+    const tm=line.match(/\s(\d{1,2}):(\d{2})\s*$/)||line.match(/\s(\d{1,4})\s*$/);
+    if(tm){start=tm.length===3?(+tm[1])*60+(+tm[2]):+tm[1];line=line.slice(0,tm.index)}
+    const name=line.replace(/\s+/g," ").trim();
+    if(name)out.push({name,vid,start});
+  }
+  return out;
+}
+function buildQuestions(songs,random){
+  const order=random?shuffle(songs):songs.slice();
+  const names=[...new Set(songs.map(s=>s.name))];
+  return order.map(s=>{
+    const others=shuffle(names.filter(n=>n!==s.name)).slice(0,3);
+    const opts=shuffle([s.name,...others]);
+    return {...s,opts,ans:opts.indexOf(s.name)};
+  });
+}
+
+/* ---------- YouTube ---------- */
+let YTP=null,ytReady=null;
+function loadYT(){
+  if(ytReady)return ytReady;
+  ytReady=new Promise(res=>{
+    window.onYouTubeIframeAPIReady=()=>{
+      YTP=new YT.Player("yt",{width:"100%",height:"100%",playerVars:{playsinline:1,controls:0,disablekb:1,rel:0,modestbranding:1},
+        events:{onReady:()=>res(YTP),onError:e=>{window.dispatchEvent(new CustomEvent("yterror",{detail:e.data}))}}});
+    };
+    const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";s.onerror=()=>res(null);document.head.append(s);
+    setTimeout(()=>res(YTP),12000);
+  });
+  return ytReady;
+}
+let stageRef=null;
+function placePlayer(){
+  const park=$("#yt-park");
+  if(!stageRef||!stageRef.isConnected){park.style.left="-9999px";return}
+  const r=stageRef.getBoundingClientRect();
+  Object.assign(park.style,{left:(r.left+scrollX)+"px",top:(r.top+scrollY)+"px",width:r.width+"px",height:r.height+"px"});
+}
+function mountPlayer(stage,covered){stageRef=stage;$("#yt-cover").hidden=!covered;if(covered)$("#ytmsg").textContent="";placePlayer()}
+function parkPlayer(){stageRef=null;placePlayer()}
+window.addEventListener("resize",placePlayer);
+setInterval(placePlayer,500);
+
+/* ================= LANDING / JOIN ================= */
+function landing(err){
+  const saved=LS.get("sp:player")||{};
+  const hashCode=(location.hash.match(/\d{6}/)||[])[0];
+  const code=h("input",{class:"code",id:"code",inputmode:"numeric",maxlength:"6",placeholder:"000000",value:hashCode||"",autocomplete:"off"});
+  const name=h("input",{id:"nick",maxlength:"12",placeholder:"你的暱稱",value:saved.name||"",autocomplete:"off"});
+  const msg=h("p",{class:"err"},err||"");
+  const go=()=>{const c=code.value.replace(/\D/g,"");const n=name.value.trim();
+    if(c.length!==6){msg.textContent="房間碼是 6 位數字";return}
+    if(!n){msg.textContent="請輸入暱稱";return}
+    startPlayer(c,n)};
+  [code,name].forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter")go()}));
+  app.replaceChildren(
+    h("div",{class:"narrow",style:"display:flex;flex-direction:column;gap:18px;margin-top:6vh"},
+      h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
+      h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
+      h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間"))));
+  (hashCode?name:code).focus();
+}
+
+/* ================= HOST SETUP ================= */
+function hostSetup(){
+  const saved=LS.get("sp:setup");
+  const ta=h("textarea",{id:"songs",spellcheck:"false"});ta.value=saved?.text??SAMPLE;
+  const ans=h("select",{id:"ans"},[10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.ans||20)},s+" 秒")));
+  const clip=h("select",{id:"clip"},[5,10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.clip||15)},"播 "+s+" 秒")));
+  const rnd=h("input",{type:"checkbox",id:"rnd",checked:saved?.rnd??true,style:"width:auto"});
+  const list=h("ul",{class:"songlist"});const err=h("p",{class:"err"});const info=h("p",{class:"muted"});
+  const upd=()=>{
+    const s=parseSongs(ta.value);const withV=s.filter(x=>x.vid).length;
+    info.textContent=`共 ${s.length} 首，${withV} 首有 YouTube 連結會自動播放，其餘需要主持人自己播。`;
+    list.replaceChildren(...s.map((x,i)=>h("li",{},h("span",{class:"n"},i+1),h("span",{class:"nm"},x.name,x.vid&&x.start?`（從 ${Math.floor(x.start/60)}:${String(x.start%60).padStart(2,"0")} 開始）`:""),
+      x.vid?h("span",{class:"tag ok"},"✓ 有連結"):h("a",{class:"tag no",href:"https://www.youtube.com/results?search_query="+encodeURIComponent(x.name),target:"_blank",rel:"noopener"},"找 YouTube ↗"))));
+    err.textContent=s.length<2?"至少要 2 首歌":"";
+  };
+  ta.addEventListener("input",upd);upd();
+  app.replaceChildren(
+    h("header",{class:"row",style:"justify-content:space-between"},h("div",{},brand(),h("h1",{},"準備歌單")),h("button",{class:"link",onclick:()=>landing()},"← 回到加入畫面")),
+    h("div",{class:"card"},
+      h("label",{for:"songs"},"歌單（一行一首：歌名、YouTube 網址、從第幾秒開始播）",ta),
+      h("p",{class:"muted"},"選項會自動從歌單裡抽其他歌名當干擾選項。按「找 YouTube」打開搜尋，複製影片網址貼到該行後面即可；想從副歌開始播，就在最後加上時間，例如 1:05。"),
+      info,list,err,
+      h("div",{class:"row"},
+        h("label",{for:"clip",class:"grow"},"每首播放長度",clip),
+        h("label",{for:"ans",class:"grow"},"作答時間",ans),
+        h("label",{for:"rnd",class:"grow",style:"flex-direction:row;align-items:center;gap:8px"},rnd,"隨機順序")),
+      h("button",{class:"go",onclick:()=>{const s=parseSongs(ta.value);if(s.length<2){err.textContent="至少要 2 首歌";return}
+        LS.set("sp:setup",{text:ta.value,ans:+ans.value,clip:+clip.value,rnd:rnd.checked});
+        if(s.some(x=>x.vid))loadYT();
+        openRoom(buildQuestions(s,rnd.checked),+ans.value,+clip.value)}},"開房間")));
+}
+
+/* ================= HOST GAME ================= */
+function openRoom(qs,limit,clip){
+  const G={qs,limit,clip,qi:-1,phase:"lobby",players:new Map(),deadline:0,start:0,tick:null,peer:null,code:"",ytErr:null};
+  keepAwake();
+  app.replaceChildren(h("p",{class:"muted",style:"text-align:center;margin-top:20vh"},"正在開房間⋯"));
+  window.addEventListener("yterror",e=>{G.ytErr=e.detail;const c=$("#ytmsg");if(c)c.textContent="這支影片不能嵌入播放（錯誤 "+e.detail+"），請主持人手動播放這首。"});
+  function create(){
+    G.code=String(Math.floor(100000+Math.random()*900000));
+    const peer=new Peer(PREFIX+G.code);G.peer=peer;
+    peer.on("open",()=>render());
+    peer.on("error",e=>{
+      if(e.type==="unavailable-id"){peer.destroy();create();return}
+      if(["network","server-error","socket-error"].includes(e.type)){setTimeout(()=>{if(peer.disconnected&&!peer.destroyed)peer.reconnect()},2000);return}
+      console.warn(e);
+    });
+    peer.on("disconnected",()=>setTimeout(()=>{if(!peer.destroyed)peer.reconnect()},1500));
+    peer.on("connection",conn=>{
+      conn.on("data",d=>onData(conn,d));
+      conn.on("close",()=>{for(const p of G.players.values())if(p.conn===conn){p.conn=null;if(G.phase==="lobby")render()}});
+    });
+  }
+  create();
+
+  function send(p,m){try{if(p.conn&&p.conn.open)p.conn.send(m)}catch(e){}}
+  function ranked(){return [...G.players.values()].sort((a,b)=>b.score-a.score)}
+  function stateFor(p){
+    const r=ranked();const q=G.qs[G.qi];
+    const base={t:"state",phase:G.phase,qi:G.qi,total:G.qs.length,score:p.score,rank:r.indexOf(p)+1,count:r.length,name:p.name};
+    if(G.phase==="question")return {...base,opts:q.opts,answered:p.ans!=null};
+    if(G.phase==="reveal"||G.phase==="board")return {...base,last:p.last,correct:q.name};
+    return base;
+  }
+  function pushAll(){for(const p of G.players.values())send(p,stateFor(p))}
+  function onData(conn,d){
+    if(!d||typeof d!=="object")return;
+    if(d.t==="join"){
+      const name=String(d.name||"").trim().slice(0,12),tok=String(d.tok||"");
+      if(!name){conn.send({t:"err",m:"請輸入暱稱"});return}
+      let p=G.players.get(name);
+      if(p&&p.tok!==tok){conn.send({t:"err",m:"這個暱稱已經有人用了，換一個吧"});return}
+      if(!p){p={name,tok,score:0,ans:null,last:null,conn:null};G.players.set(name,p)}
+      p.conn=conn;send(p,stateFor(p));if(G.phase==="lobby")render();return;
+    }
+    if(d.t==="ans"){
+      const p=[...G.players.values()].find(x=>x.conn===conn);
+      if(!p||G.phase!=="question"||d.q!==G.qi||p.ans!=null)return;
+      const c=d.c|0;if(c<0||c>=G.qs[G.qi].opts.length)return;
+      p.ans={c,ms:Date.now()-G.start};send(p,stateFor(p));renderAnswered();
+      if([...G.players.values()].filter(x=>x.conn).every(x=>x.ans!=null))reveal();
+    }
+  }
+  function playClip(q,full){
+    G.ytErr=null;
+    if(!q.vid||!YTP||!YTP.loadVideoById)return false;
+    const o={videoId:q.vid,startSeconds:q.start||0};if(!full)o.endSeconds=(q.start||0)+G.clip;
+    try{YTP.loadVideoById(o);YTP.unMute&&YTP.unMute();YTP.setVolume&&YTP.setVolume(100);return true}catch(e){return false}
+  }
+  function stopMusic(){try{YTP&&YTP.stopVideo&&YTP.stopVideo()}catch(e){}}
+  async function nextQ(){
+    G.qi++;
+    if(G.qi>=G.qs.length){stopMusic();G.phase="final";render();pushAll();return}
+    for(const p of G.players.values()){p.ans=null;p.last=null}
+    const q=G.qs[G.qi];
+    if(q.vid)await loadYT();
+    G.phase="question";G.start=Date.now();G.deadline=G.start+G.limit*1000;
+    render();pushAll();
+    playClip(q,false);
+    clearInterval(G.tick);
+    G.tick=setInterval(()=>{const t=$("#timer");if(t)t.textContent=Math.max(0,Math.ceil((G.deadline-Date.now())/1000));if(Date.now()>=G.deadline)reveal()},200);
+  }
+  function reveal(){
+    if(G.phase!=="question")return;
+    clearInterval(G.tick);
+    const q=G.qs[G.qi];
+    for(const p of G.players.values()){
+      if(p.ans&&p.ans.c===q.ans){const g=Math.round(500+500*Math.max(0,1-p.ans.ms/(G.limit*1000)));p.score+=g;p.last={ok:true,g}}
+      else p.last={ok:false,g:0,none:!p.ans};
+    }
+    G.phase="reveal";render();pushAll();
+    if(q.vid&&!G.ytErr)playClip(q,true);
+  }
+  function renderAnswered(){const el=$("#answered");if(el)el.firstChild.textContent=[...G.players.values()].filter(p=>p.ans!=null).length}
+  function stageEl(q,covered){
+    const st=h("div",{class:"stage"});
+    if(q.vid){
+      setTimeout(()=>mountPlayer(st,covered),0);
+    }else{
+      parkPlayer();
+      st.style.aspectRatio="auto";st.style.background="transparent";
+      st.append(h("div",{class:"cover",style:"position:static;border-radius:16px;padding:28px"},h("div",{},
+        covered?h("div",{class:"eq"},h("i"),h("i"),h("i"),h("i"),h("i")):null,
+        h("div",{class:"big"},covered?"這是哪首歌？":"答案："+q.name),
+        covered?h("p",{style:"margin-top:8px"},"主持人請播放這首歌"):null)));
+    }
+    return st;
+  }
+  function render(){
+    const q=G.qs[G.qi];const players=[...G.players.values()];
+    if(G.phase!=="question"&&G.phase!=="reveal")parkPlayer();
+    if(G.phase==="lobby"){
+      const url=baseURL()+"#"+G.code;const qr=h("div",{class:"qr"});
+      app.replaceChildren(
+        h("header",{},brand()),
+        h("div",{class:"lobby"},
+          h("div",{style:"display:flex;flex-direction:column;gap:10px;min-width:0"},
+            h("p",{class:"muted",style:"font-size:1.2rem"},"用手機打開這個網址，輸入房間碼："),
+            h("p",{style:"font-weight:900;font-size:1.2rem;overflow-wrap:anywhere"},baseURL()),
+            h("div",{class:"bigcode"},G.code)),qr),
+        h("div",{class:"row",style:"justify-content:space-between"},h("h2",{},`已加入 ${players.length} 人`),
+          h("button",{class:"go",disabled:!players.length,onclick:nextQ},`開始（共 ${G.qs.length} 首）`)),
+        h("div",{class:"chips"},players.length?players.map(p=>h("span",{class:"chip pop"+(p.conn?"":" off")},p.name)):h("p",{class:"muted"},"等待玩家加入⋯")));
+      try{new QRCode(qr,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M})}catch(e){qr.remove()}
+      return;
+    }
+    if(G.phase==="question"){
+      app.replaceChildren(
+        h("div",{class:"qtop"},h("span",{class:"qnum"},`第 ${G.qi+1} / ${G.qs.length} 首`),brand()),
+        stageEl(q,true),
+        h("div",{class:"row",style:"justify-content:space-between"},
+          h("div",{class:"timer",id:"timer"},G.limit),
+          h("div",{class:"answered",id:"answered"},h("b",{},"0"),"人已作答"),
+          h("div",{class:"row"},q.vid?h("button",{class:"ghost sm",onclick:()=>playClip(q,false)},"再播一次"):null,h("button",{class:"ghost sm",onclick:reveal},"直接公布"))),
+        h("div",{class:"opts"},q.opts.map((o,i)=>h("div",{class:"opt o"+i},h("span",{class:"k"},KEYS[i]),h("span",{},o)))));
+      renderAnswered();return;
+    }
+    if(G.phase==="reveal"){
+      const counts=q.opts.map((_,i)=>players.filter(p=>p.ans&&p.ans.c===i).length);const isLast=G.qi===G.qs.length-1;
+      app.replaceChildren(
+        h("div",{class:"qtop"},h("span",{class:"qnum"},`第 ${G.qi+1} / ${G.qs.length} 首`),brand()),
+        stageEl(q,false),
+        h("div",{class:"opts"},q.opts.map((o,i)=>h("div",{class:"opt o"+i+(i===q.ans?" right pop":" dim")},h("span",{class:"k"},i===q.ans?"✓":KEYS[i]),h("span",{},o),h("span",{class:"cnt"},counts[i]+" 人")))),
+        h("div",{class:"row",style:"justify-content:flex-end"},
+          q.vid?h("button",{class:"ghost",onclick:stopMusic},"停止音樂"):null,
+          h("button",{class:"go",onclick:()=>{G.phase="board";render();pushAll()}},"看排行榜"),
+          isLast?null:h("button",{class:"ghost",onclick:nextQ},"下一首")));
+      return;
+    }
+    if(G.phase==="board"){
+      const r=ranked().slice(0,5);const isLast=G.qi===G.qs.length-1;
+      app.replaceChildren(
+        h("div",{class:"qtop"},h("h1",{},"目前排行"),brand()),
+        h("div",{class:"board"},r.map((p,i)=>h("div",{class:"brow pop"},h("span",{class:"r"},"#"+(i+1)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)))),
+        h("div",{class:"row",style:"justify-content:flex-end"},h("button",{class:"ghost",onclick:stopMusic},"停止音樂"),h("button",{class:"go",onclick:nextQ},isLast?"公布最終結果":"下一首")));
+      return;
+    }
+    if(G.phase==="final"){
+      const r=ranked();
+      const pod=(p,cls,pl)=>p?h("div",{class:"pod pop "+cls},h("span",{style:"font-size:1.8rem"},pl),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)):h("div",{});
+      app.replaceChildren(
+        h("div",{class:"qtop"},h("h1",{},"最終結果"),brand()),
+        h("div",{class:"podium"},pod(r[1],"p2","🥈"),pod(r[0],"p1","🥇"),pod(r[2],"p3","🥉")),
+        h("div",{class:"board"},r.slice(3).map((p,i)=>h("div",{class:"brow"},h("span",{class:"r"},"#"+(i+4)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)))),
+        h("div",{class:"row",style:"justify-content:flex-end"},
+          h("button",{class:"ghost",onclick:()=>{for(const p of G.players.values()){p.score=0;p.ans=null;p.last=null}G.qs=buildQuestions(G.qs.map(({name,vid,start})=>({name,vid,start})),true);G.qi=-1;G.phase="lobby";render();pushAll()}},"同一群人再玩一次"),
+          h("button",{class:"ghost",onclick:()=>{G.peer.destroy();hostSetup()}},"換歌單、關閉房間")));
+    }
+  }
+  document.addEventListener("keydown",e=>{
+    if(["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName))return;
+    if(e.key===" "||e.key==="Enter"){const b=app.querySelector("button.go:not(:disabled)");if(b){e.preventDefault();b.click()}}
+  });
+  window.addEventListener("beforeunload",e=>{if(G.phase!=="lobby"&&G.phase!=="final"){e.preventDefault();e.returnValue=""}});
+}
+
+/* ================= PLAYER ================= */
+function startPlayer(code,name){
+  const saved=LS.get("sp:player")||{};
+  const tok=saved.tok||Math.random().toString(36).slice(2)+Date.now().toString(36);
+  LS.set("sp:player",{name,tok,code});
+  history.replaceState(null,"","#"+code);
+  keepAwake();
+  let peer=null,conn=null,S=null,joined=false,retry=null,dead=false;
+  status("連線中⋯","");
+  function connect(){
+    if(dead)return;
+    if(!peer||peer.destroyed){
+      peer=new Peer();
+      peer.on("open",open);
+      peer.on("error",e=>{
+        if(e.type==="peer-unavailable"&&!joined){dead=true;peer.destroy();landing("找不到這個房間，請確認房間碼");return}
+        if(e.type==="browser-incompatible"){dead=true;status("這個瀏覽器不支援","請改用 Chrome 或 Safari");return}
+        schedule();
+      });
+      peer.on("disconnected",()=>{if(!peer.destroyed)peer.reconnect()});
+    }else if(peer.open)open();
+  }
+  function open(){
+    conn=peer.connect(PREFIX+code,{reliable:true});
+    conn.on("open",()=>{clearTimeout(retry);conn.send({t:"join",name,tok})});
+    conn.on("data",onMsg);
+    conn.on("close",()=>{if(!dead){status("連線中斷，重新連線中⋯","請保持這個頁面開著");schedule()}});
+  }
+  function schedule(){clearTimeout(retry);retry=setTimeout(()=>{if(peer&&peer.destroyed)peer=null;connect()},2500)}
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!dead&&(!conn||!conn.open))connect()});
+  connect();
+  function onMsg(d){
+    if(!d||typeof d!=="object")return;
+    if(d.t==="err"){dead=true;try{peer.destroy()}catch(e){}landing(d.m);return}
+    if(d.t!=="state")return;
+    joined=true;S=d;draw();
+  }
+  function me(){return h("div",{class:"me"},h("span",{},S.name),h("span",{class:"s"},S.score+" 分"))}
+  function status(big,small,cls){
+    app.replaceChildren(h("div",{class:"narrow",style:"display:flex;flex-direction:column;gap:12px"},brand(),S?me():null,
+      h("div",{class:"status "+(cls||"")+" pop"},h("div",{class:"big"},big),small?h("div",{},small):null)));
+  }
+  function draw(){
+    if(S.phase==="lobby")return status("你已經加入了！","看大螢幕，等主持人開始");
+    if(S.phase==="question"){
+      if(S.answered)return status("已送出答案","等其他人作答⋯");
+      app.replaceChildren(h("div",{class:"narrow",style:"display:flex;flex-direction:column;gap:12px"},
+        h("div",{class:"me"},h("span",{class:"qnum"},`第 ${S.qi+1} / ${S.total} 首`),h("span",{class:"s"},S.score+" 分")),
+        h("p",{style:"font-weight:900;text-align:center;font-size:1.2rem"},"🎵 仔細聽，這是哪首歌？"),
+        h("div",{class:"pad"},S.opts.map((o,i)=>h("button",{class:"opt o"+i,onclick:()=>{
+          app.querySelectorAll(".pad button").forEach(b=>b.disabled=true);
+          try{conn.send({t:"ans",q:S.qi,c:i})}catch(e){}
+          if(navigator.vibrate)navigator.vibrate(30);
+        }},h("span",{class:"k"},KEYS[i]),h("span",{},o))))));
+      return;
+    }
+    if(S.phase==="reveal"||S.phase==="board"){
+      const L=S.last||{ok:false,none:true};
+      if(L.ok)return status("答對了！",h("div",{},h("div",{class:"pts"},"+"+L.g),`目前第 ${S.rank} 名`),"good");
+      return status(L.none?"時間到":"答錯了",h("div",{},"答案是 ",h("b",{},S.correct),h("div",{style:"margin-top:6px"},`目前第 ${S.rank} 名`)),"bad");
+    }
+    if(S.phase==="final")return status(S.rank<=3?["🥇","🥈","🥉"][S.rank-1]+" 第 "+S.rank+" 名！":"第 "+S.rank+" 名",`總分 ${S.score} 分，共 ${S.count} 人參加`,S.rank<=3?"good":"");
+  }
+}
+
+if(!window.Peer)app.replaceChildren(h("p",{class:"err",style:"margin-top:20vh;text-align:center"},"連線元件載入失敗，請確認網路後重新整理。"));
+else landing();
+</script>
+</body>
+</html>

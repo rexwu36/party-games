@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>派對遊戲</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;900&display=swap">
+<style>
+:root{--bg:#141033;--bg2:#231b55;--ink:#fff;--muted:#b8b0e8;--a:#f25f5c;--b:#1fb5a8;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0%,var(--bg2),var(--bg) 60%) fixed;color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 32px max(16px,env(safe-area-inset-left))}
+main{max-width:520px;margin:8vh auto 0;display:flex;flex-direction:column;gap:16px}
+h1{margin:0 0 4px;font-weight:900;font-size:2.2rem}
+p{margin:0;color:var(--muted)}
+a.game{display:flex;flex-direction:column;gap:4px;padding:22px;border-radius:16px;color:#fff;text-decoration:none;font-weight:900;font-size:1.5rem}
+a.game span{font-weight:500;font-size:1rem;opacity:.9}
+a.game:focus-visible{outline:4px solid #f39a2b;outline-offset:3px}
+.q{background:var(--a)}.s{background:var(--b)}
+</style>
+</head>
+<body>
+<main>
+<h1>派對遊戲</h1>
+<p>主持人用電腦打開遊戲並開房間，其他人用手機打開同一個遊戲、輸入房間碼就能加入。</p>
+<a class="game q" href="quiz.html">搶答派對<span>選擇題即時搶答，內建「年度大事」題庫</span></a>
+<a class="game s" href="song.html">猜歌派對<span>播歌片段，大家用手機猜歌名</span></a>
+</main>
+</body>
+</html>
