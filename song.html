@@ -149,6 +149,8 @@ S.H.E〈Super Star〉 [2003] https://www.youtube.com/watch?v=gr5fNKK2FaA 0:00
 盧廣仲〈魚仔〉 [2017] https://www.youtube.com/watch?v=ybfWYpYhTQQ 0:00
 告五人〈愛人錯過〉 [2018] https://www.youtube.com/watch?v=6D79CYTxvOM 0:00`;
 
+// 歌單外的干擾歌庫：只當錯誤選項，不會被播放
+const BANK=[["張學友〈一千個傷心的理由〉",1993],["張學友〈她來聽我的演唱會〉",1993],["劉德華〈忘情水〉",1994],["劉德華〈冰雨〉",1997],["郭富城〈對你愛不完〉",1990],["王傑〈一場遊戲一場夢〉",1987],["周華健〈朋友〉",1997],["周華健〈花心〉",1993],["任賢齊〈心太軟〉",1996],["任賢齊〈對面的女孩看過來〉",1998],["張宇〈月亮惹的禍〉",1998],["張信哲〈愛如潮水〉",1993],["動力火車〈當〉",1998],["黃品源〈你怎麼捨得我難過〉",1990],["張雨生〈大海〉",1992],["伍佰〈浪人情歌〉",1994],["伍佰〈突然的自我〉",2003],["張惠妹〈姊妹〉",1996],["張惠妹〈記得〉",2001],["王菲〈我願意〉",1994],["王菲〈容易受傷的女人〉",1992],["王菲〈傳奇〉",2010],["陶喆〈普通朋友〉",1999],["陶喆〈找自己〉",2002],["張震嶽〈愛我別走〉",1999],["莫文蔚〈他不愛我〉",2000],["孫燕姿〈綠光〉",2001],["孫燕姿〈遇見〉",2003],["孫燕姿〈我懷念的〉",2006],["梁靜茹〈寧夏〉",2004],["梁靜茹〈可惜不是你〉",2005],["梁靜茹〈暖暖〉",2006],["周杰倫〈龍捲風〉",2000],["周杰倫〈簡單愛〉",2001],["周杰倫〈雙截棍〉",2001],["周杰倫〈安靜〉",2001],["周杰倫〈半島鐵盒〉",2002],["周杰倫〈東風破〉",2003],["周杰倫〈夜曲〉",2005],["周杰倫〈聽媽媽的話〉",2006],["周杰倫〈菊花台〉",2006],["周杰倫〈不能說的秘密〉",2007],["周杰倫〈說好的幸福呢〉",2008],["周杰倫〈給我一首歌的時間〉",2008],["周杰倫〈煙花易冷〉",2010],["周杰倫〈等你下課〉",2018],["周杰倫〈說好不哭〉",2019],["五月天〈擁抱〉",1999],["五月天〈你不是真正的快樂〉",2004],["五月天〈知足〉",2005],["五月天〈戀愛ing〉",2006],["五月天〈私奔到月球〉",2007],["五月天〈乾杯〉",2011],["五月天〈後來的我們〉",2016],["五月天〈頑固〉",2016],["蔡依林〈布拉格廣場〉",2003],["蔡依林〈說愛你〉",2003],["蔡依林〈看我72變〉",2003],["蔡依林〈舞孃〉",2006],["蔡依林〈大藝術家〉",2012],["蔡依林〈怪美的〉",2018],["林俊傑〈曹操〉",2006],["林俊傑〈一千年以後〉",2006],["林俊傑〈小酒窩〉",2008],["林俊傑〈她說〉",2010],["林俊傑〈修煉愛情〉",2013],["林俊傑〈不為誰而作的歌〉",2015],["王力宏〈唯一〉",2001],["王力宏〈心中的日月〉",2004],["王力宏〈蓋世英雄〉",2005],["王力宏〈落葉歸根〉",2007],["S.H.E〈戀人未滿〉",2002],["S.H.E〈不想長大〉",2005],["S.H.E〈中國話〉",2007],["F4〈流星雨〉",2001],["信樂團〈死了都要愛〉",2002],["范瑋琪〈最初的夢想〉",2003],["李聖傑〈痴心絕對〉",2003],["張棟樑〈當你孤單你會想起誰〉",2004],["張韶涵〈歐若拉〉",2004],["張韶涵〈隱形的翅膀〉",2006],["楊丞琳〈曖昧〉",2005],["楊丞琳〈雨愛〉",2009],["陳奕迅〈十年〉",2003],["陳奕迅〈浮誇〉",2005],["陳奕迅〈好久不見〉",2007],["陳奕迅〈愛情轉移〉",2007],["蘇打綠〈無與倫比的美麗〉",2007],["林宥嘉〈說謊〉",2009],["林宥嘉〈殘酷月光〉",2009],["田馥甄〈魔鬼中的天使〉",2010],["田馥甄〈你就不要想起我〉",2011],["鄧紫棋〈喜歡你〉",2014],["鄧紫棋〈光年之外〉",2016],["鄧紫棋〈倒數〉",2018],["李榮浩〈李白〉",2013],["李榮浩〈年少有為〉",2018],["薛之謙〈演員〉",2015],["毛不易〈消愁〉",2017],["草東沒有派對〈山海〉",2016],["草東沒有派對〈爛泥〉",2019],["告五人〈披星戴月的想你〉",2019],["告五人〈唯一〉",2021]];
 const $=(s,r=document)=>r.querySelector(s);
 function h(tag,attrs={},...kids){const el=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(v==null||v===false)continue;if(k.startsWith("on"))el.addEventListener(k.slice(2),v);else if(k==="class")el.className=v;else if(k==="style")el.style.cssText=v;else el.setAttribute(k,v===true?"":v)}for(const k of kids.flat()){if(k==null||k===false)continue;el.append(k instanceof Node?k:document.createTextNode(String(k)))}return el}
 const app=$("#app");
@@ -192,15 +194,24 @@ function parseSongs(text){
 }
 function buildQuestions(songs,random){
   const order=random?shuffle(songs):songs.slice();
-  const uniq=[],seen=new Set();for(const x of songs)if(!seen.has(x.name)){seen.add(x.name);uniq.push(x)}
-  const N=Math.min(8,uniq.length);
+  const pool=new Map();
+  for(const x of songs)if(!pool.has(x.name))pool.set(x.name,x.year||null);
+  for(const [n,y] of BANK)if(!pool.has(n))pool.set(n,y);
+  const names=[...pool.keys()];
+  const N=Math.min(8,names.length);
   const artist=n=>n.split(/[〈《「(（]/)[0].trim();
+  const used=new Map();
   return order.map(s=>{
-    const cand=uniq.filter(o=>o.name!==s.name).map(o=>{
-      let d=(s.year&&o.year)?Math.abs(s.year-o.year):6;
-      if(artist(o.name)===artist(s.name))d-=4;
-      return {n:o.name,d:d+Math.random()*1.5};
-    }).sort((a,b)=>a.d-b.d).slice(0,N-1).map(o=>o.n);
+    const scored=names.filter(n=>n!==s.name).map(n=>{
+      const y=pool.get(n);
+      let d=(s.year&&y)?Math.abs(s.year-y):5;
+      if(artist(n)===artist(s.name))d-=3;
+      d+=(used.get(n)||0)*1.5;
+      return {n,d:d+Math.random()*2.5};
+    }).sort((a,b)=>a.d-b.d);
+    const near=scored.slice(0,Math.max(N+5,14));
+    const cand=shuffle(near).slice(0,N-1).map(o=>o.n);
+    for(const n of cand)used.set(n,(used.get(n)||0)+1);
     const opts=shuffle([s.name,...cand]);
     return {...s,opts,ans:opts.indexOf(s.name)};
   });
@@ -249,7 +260,7 @@ function landing(err){
       h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
       h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v4")));
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v5")));
   (hashCode?name:code).focus();
 }
 
@@ -273,7 +284,7 @@ function hostSetup(){
     h("header",{class:"row",style:"justify-content:space-between"},h("div",{},brand(),h("h1",{},"準備歌單")),h("button",{class:"link",onclick:()=>landing()},"← 回到加入畫面")),
     h("div",{class:"card"},
       h("label",{for:"songs"},"歌單（一行一首：歌名、[發行年份]、YouTube 網址、從第幾秒開始播）",ta),
-      h("p",{class:"muted"},"每題 8 個選項，干擾選項會自動挑發行年份最接近、或同一位歌手的歌，所以記得寫上年份。按「找 YouTube」打開搜尋，複製影片網址貼到該行後面即可；想從副歌開始播，就在最後加上時間，例如 1:05。"),
+      h("p",{class:"muted"},"每題 8 個選項。錯誤選項會從歌單和內建的 100 首熱門歌裡，挑發行年份接近或同一位歌手的歌，每題都不一樣，所以記得寫上年份。按「找 YouTube」打開搜尋，複製影片網址貼到該行後面即可；想從副歌開始播，就在最後加上時間，例如 1:05。"),
       info,list,err,
       h("div",{class:"row"},
         h("label",{for:"clip",class:"grow"},"每首播放長度",clip),
@@ -479,7 +490,7 @@ function startPlayer(code,name){
     try{cl=await mqttConnect(BROKERS[bi],{will:{topic:up,payload:JSON.stringify({t:"bye",pid:tok}),qos:1}})}
     catch(e){status("連不上連線伺服器","請確認手機有網路；連 Wi-Fi 的話可以改用行動網路再試");return}
     const askJoin=setInterval(()=>{if(!joined&&!dead)pub({t:"join",name})},2000);
-    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v4）")}},15000);
+    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v5）")}},15000);
     cl.on("message",(topic,buf)=>{
       if(dead)return;const s=buf.toString();
       if(topic===base+"hello"){
