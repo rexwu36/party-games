@@ -108,7 +108,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <main id="app"></main>
 <div id="yt-park"><div id="yt"></div><div id="yt-cover" class="cover" hidden><div><div class="eq"><i></i><i></i><i></i><i></i><i></i></div><div class="big">這是哪首歌？</div><p id="ytmsg" style="margin-top:8px"></p></div></div></div>
 
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 "use strict";
@@ -142,6 +142,14 @@ function h(tag,attrs={},...kids){const el=document.createElement(tag);for(const[
 const app=$("#app");
 const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const KEYS=["A","B","C","D"];
+const BROKERS=[{url:"wss://public.cloud.shiftr.io",o:{username:"public",password:"public"}},{url:"wss://broker.emqx.io:8084/mqtt",o:{}},{url:"wss://test.mosquitto.org:8081",o:{}}];
+const TOPIC_BASE="partygames-rexwu36/song/";
+function mqttConnect(bk,opts){return new Promise((res,rej)=>{
+  const c=mqtt.connect(bk.url,{connectTimeout:6000,reconnectPeriod:2000,keepalive:20,clean:true,...bk.o,...opts});
+  const t=setTimeout(()=>{try{c.end(true)}catch(e){}rej(new Error("timeout"))},7000);
+  c.once("connect",()=>{clearTimeout(t);res(c)});
+})}
+
 let wakeLock=null;async function keepAwake(){try{wakeLock=await navigator.wakeLock?.request("screen")}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&wakeLock)keepAwake()});
 function baseURL(){return location.href.split("#")[0]}
@@ -263,24 +271,30 @@ function openRoom(qs,limit,clip){
   keepAwake();
   app.replaceChildren(h("p",{class:"muted",style:"text-align:center;margin-top:20vh"},"正在開房間⋯"));
   window.addEventListener("yterror",e=>{G.ytErr=e.detail;const c=$("#ytmsg");if(c)c.textContent="這支影片不能嵌入播放（錯誤 "+e.detail+"），請主持人手動播放這首。"});
-  function create(){
-    G.code=String(Math.floor(100000+Math.random()*900000));
-    const peer=new Peer(PREFIX+G.code);G.peer=peer;
-    peer.on("open",()=>render());
-    peer.on("error",e=>{
-      if(e.type==="unavailable-id"){peer.destroy();create();return}
-      if(["network","server-error","socket-error"].includes(e.type)){setTimeout(()=>{if(peer.disconnected&&!peer.destroyed)peer.reconnect()},2000);return}
-      console.warn(e);
-    });
-    peer.on("disconnected",()=>setTimeout(()=>{if(!peer.destroyed)peer.reconnect()},1500));
-    peer.on("connection",conn=>{
-      conn.on("data",d=>onData(conn,d));
-      conn.on("close",()=>{for(const p of G.players.values())if(p.conn===conn){p.conn=null;if(G.phase==="lobby")render()}});
-    });
+  function online(p){return Date.now()-p.seen<25000}
+  async function create(){
+    for(let b=0;b<BROKERS.length;b++){
+      const code=String(b+1)+String(Math.floor(10000+Math.random()*90000));
+      const base=TOPIC_BASE+code+"/";
+      try{
+        const cl=await mqttConnect(BROKERS[b],{will:{topic:base+"hello",payload:"",retain:true,qos:1}});
+        G.code=code;G.cl=cl;G.base=base;
+        cl.on("connect",()=>cl.publish(base+"hello",JSON.stringify({at:Date.now()}),{retain:true,qos:1}));
+        cl.on("message",(topic,buf)=>{let d;try{d=JSON.parse(buf.toString())}catch(e){return}onData(d)});
+        cl.subscribe(base+"up",{qos:1});
+        cl.publish(base+"hello",JSON.stringify({at:Date.now()}),{retain:true,qos:1});
+        let sig="";
+        setInterval(()=>{if(G.phase!=="lobby")return;const s=[...G.players.values()].map(p=>p.name+online(p)).join();if(s!==sig){sig=s;render()}},4000);
+        render();return;
+      }catch(e){console.warn("broker failed",BROKERS[b].url,e)}
+    }
+    app.replaceChildren(h("div",{class:"narrow",style:"margin-top:20vh;text-align:center;display:flex;flex-direction:column;gap:12px"},
+      h("p",{class:"err"},"連不上連線伺服器"),h("p",{class:"muted"},"請確認這台電腦有網路，或換一個網路（例如手機熱點）後重新整理。")));
   }
   create();
-
-  function send(p,m){try{if(p.conn&&p.conn.open)p.conn.send(m)}catch(e){}}
+  function closeRoom(){try{G.cl.publish(G.base+"hello","",{retain:true,qos:1},()=>G.cl.end())}catch(e){}}
+  function sendTo(pid,m){try{G.cl&&G.cl.publish(G.base+"p/"+pid,JSON.stringify(m),{qos:1})}catch(e){}}
+  function send(p,m){if(p.pid)sendTo(p.pid,m)}
   function ranked(){return [...G.players.values()].sort((a,b)=>b.score-a.score)}
   function stateFor(p){
     const r=ranked();const q=G.qs[G.qi];
@@ -290,22 +304,29 @@ function openRoom(qs,limit,clip){
     return base;
   }
   function pushAll(){for(const p of G.players.values())send(p,stateFor(p))}
-  function onData(conn,d){
-    if(!d||typeof d!=="object")return;
+  function onData(d){
+    if(!d||typeof d!=="object"||typeof d.pid!=="string")return;
+    const pid=d.pid.slice(0,64);
+    let p=[...G.players.values()].find(x=>x.pid===pid);
     if(d.t==="join"){
-      const name=String(d.name||"").trim().slice(0,12),tok=String(d.tok||"");
-      if(!name){conn.send({t:"err",m:"請輸入暱稱"});return}
-      let p=G.players.get(name);
-      if(p&&p.tok!==tok){conn.send({t:"err",m:"這個暱稱已經有人用了，換一個吧"});return}
-      if(!p){p={name,tok,score:0,ans:null,last:null,conn:null};G.players.set(name,p)}
-      p.conn=conn;send(p,stateFor(p));if(G.phase==="lobby")render();return;
+      const name=String(d.name||"").trim().slice(0,12);
+      if(!name){sendTo(pid,{t:"err",m:"請輸入暱稱"});return}
+      const same=G.players.get(name);
+      if(same&&same.pid!==pid){sendTo(pid,{t:"err",m:"這個暱稱已經有人用了，換一個吧"});return}
+      if(p&&p.name!==name)G.players.delete(p.name);
+      p=same;
+      if(!p){p={name,pid,score:0,ans:null,last:null,seen:0};G.players.set(name,p)}
+      p.seen=Date.now();send(p,stateFor(p));if(G.phase==="lobby")render();return;
     }
+    if(!p)return;
+    if(d.t==="ping"){p.seen=Date.now();return}
+    if(d.t==="bye"){p.seen=0;if(G.phase==="lobby")render();return}
     if(d.t==="ans"){
-      const p=[...G.players.values()].find(x=>x.conn===conn);
-      if(!p||G.phase!=="question"||d.q!==G.qi||p.ans!=null)return;
+      p.seen=Date.now();
+      if(G.phase!=="question"||d.q!==G.qi||p.ans!=null)return;
       const c=d.c|0;if(c<0||c>=G.qs[G.qi].opts.length)return;
       p.ans={c,ms:Date.now()-G.start};send(p,stateFor(p));renderAnswered();
-      if([...G.players.values()].filter(x=>x.conn).every(x=>x.ans!=null))reveal();
+      if([...G.players.values()].filter(online).every(x=>x.ans!=null))reveal();
     }
   }
   function playClip(q,full){
@@ -367,7 +388,7 @@ function openRoom(qs,limit,clip){
             h("div",{class:"bigcode"},G.code)),qr),
         h("div",{class:"row",style:"justify-content:space-between"},h("h2",{},`已加入 ${players.length} 人`),
           h("button",{class:"go",disabled:!players.length,onclick:nextQ},`開始（共 ${G.qs.length} 首）`)),
-        h("div",{class:"chips"},players.length?players.map(p=>h("span",{class:"chip pop"+(p.conn?"":" off")},p.name)):h("p",{class:"muted"},"等待玩家加入⋯")));
+        h("div",{class:"chips"},players.length?players.map(p=>h("span",{class:"chip pop"+(online(p)?"":" off")},p.name)):h("p",{class:"muted"},"等待玩家加入⋯")));
       try{new QRCode(qr,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M})}catch(e){qr.remove()}
       return;
     }
@@ -411,7 +432,7 @@ function openRoom(qs,limit,clip){
         h("div",{class:"board"},r.slice(3).map((p,i)=>h("div",{class:"brow"},h("span",{class:"r"},"#"+(i+4)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)))),
         h("div",{class:"row",style:"justify-content:flex-end"},
           h("button",{class:"ghost",onclick:()=>{for(const p of G.players.values()){p.score=0;p.ans=null;p.last=null}G.qs=buildQuestions(G.qs.map(({name,vid,start})=>({name,vid,start})),true);G.qi=-1;G.phase="lobby";render();pushAll()}},"同一群人再玩一次"),
-          h("button",{class:"ghost",onclick:()=>{G.peer.destroy();hostSetup()}},"換歌單、關閉房間")));
+          h("button",{class:"ghost",onclick:()=>{closeRoom();hostSetup()}},"換歌單、關閉房間")));
     }
   }
   document.addEventListener("keydown",e=>{
@@ -428,33 +449,31 @@ function startPlayer(code,name){
   LS.set("sp:player",{name,tok,code});
   history.replaceState(null,"","#"+code);
   keepAwake();
-  let peer=null,conn=null,S=null,joined=false,retry=null,dead=false;
+  let cl=null,S=null,joined=false,dead=false,helloSeen=false,qStart=0;
+  const bi=+code[0]-1;
+  if(!BROKERS[bi]){landing("房間碼不正確，請再確認一次");return}
+  const base=TOPIC_BASE+code+"/",up=base+"up";
+  const pub=m=>{try{cl&&cl.publish(up,JSON.stringify({...m,pid:tok}),{qos:1})}catch(e){}};
   status("連線中⋯","");
-  function connect(){
-    if(dead)return;
-    if(!peer||peer.destroyed){
-      peer=new Peer();
-      peer.on("open",open);
-      peer.on("error",e=>{
-        if(e.type==="peer-unavailable"&&!joined){dead=true;peer.destroy();landing("找不到這個房間，請確認房間碼");return}
-        if(e.type==="browser-incompatible"){dead=true;status("這個瀏覽器不支援","請改用 Chrome 或 Safari");return}
-        schedule();
-      });
-      peer.on("disconnected",()=>{if(!peer.destroyed)peer.reconnect()});
-    }else if(peer.open)open();
-  }
-  function open(){
-    conn=peer.connect(PREFIX+code,{reliable:true});
-    conn.on("open",()=>{clearTimeout(retry);conn.send({t:"join",name,tok})});
-    conn.on("data",onMsg);
-    conn.on("close",()=>{if(!dead){status("連線中斷，重新連線中⋯","請保持這個頁面開著");schedule()}});
-  }
-  function schedule(){clearTimeout(retry);retry=setTimeout(()=>{if(peer&&peer.destroyed)peer=null;connect()},2500)}
-  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!dead&&(!conn||!conn.open))connect()});
-  connect();
+  (async()=>{
+    try{cl=await mqttConnect(BROKERS[bi],{will:{topic:up,payload:JSON.stringify({t:"bye",pid:tok}),qos:1}})}
+    catch(e){status("連不上連線伺服器","請確認手機有網路；連 Wi-Fi 的話可以改用行動網路再試");return}
+    const noRoom=setTimeout(()=>{if(!helloSeen){dead=true;cl.end(true);landing("找不到這個房間，請確認房間碼")}},8000);
+    cl.on("message",(topic,buf)=>{
+      if(dead)return;const s=buf.toString();
+      if(topic===base+"hello"){
+        if(!s){if(joined)status("主持人暫時離線","等主持人回來⋯");return}
+        helloSeen=true;clearTimeout(noRoom);pub({t:"join",name});return;
+      }
+      let d;try{d=JSON.parse(s)}catch(e){return}onMsg(d);
+    });
+    cl.on("offline",()=>{if(!dead&&joined)status("連線中斷，重新連線中⋯","請保持這個頁面開著")});
+    cl.subscribe([base+"hello",base+"p/"+tok],{qos:1});
+    setInterval(()=>{if(!dead&&cl.connected)pub({t:"ping"})},8000);
+  })();
   function onMsg(d){
     if(!d||typeof d!=="object")return;
-    if(d.t==="err"){dead=true;try{peer.destroy()}catch(e){}landing(d.m);return}
+    if(d.t==="err"){dead=true;try{cl.end(true)}catch(e){}landing(d.m);return}
     if(d.t!=="state")return;
     joined=true;S=d;draw();
   }
@@ -472,7 +491,7 @@ function startPlayer(code,name){
         h("p",{style:"font-weight:900;text-align:center;font-size:1.2rem"},"🎵 仔細聽，這是哪首歌？"),
         h("div",{class:"pad"},S.opts.map((o,i)=>h("button",{class:"opt o"+i,onclick:()=>{
           app.querySelectorAll(".pad button").forEach(b=>b.disabled=true);
-          try{conn.send({t:"ans",q:S.qi,c:i})}catch(e){}
+          pub({t:"ans",q:S.qi,c:i});
           if(navigator.vibrate)navigator.vibrate(30);
         }},h("span",{class:"k"},KEYS[i]),h("span",{},o))))));
       return;
@@ -486,7 +505,7 @@ function startPlayer(code,name){
   }
 }
 
-if(!window.Peer)app.replaceChildren(h("p",{class:"err",style:"margin-top:20vh;text-align:center"},"連線元件載入失敗，請確認網路後重新整理。"));
+if(!window.mqtt)app.replaceChildren(h("p",{class:"err",style:"margin-top:20vh;text-align:center"},"連線元件載入失敗，請確認網路後重新整理。"));
 else landing();
 </script>
 </body>
