@@ -115,39 +115,76 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <script>
 "use strict";
 const PREFIX="songparty-zh-";
-const SAMPLE=`# 一行一首：歌名　[發行年份]　YouTube 網址　從第幾秒開始播
-# 年份用來挑干擾選項：會優先出現年份接近、或同一位歌手的歌
-# 開始秒數已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）
-張學友〈吻別〉 [1993] https://www.youtube.com/watch?v=mIF-nn_y2_8 0:00
-伍佰〈挪威的森林〉 [1996] https://www.youtube.com/watch?v=gPpZJlE0Ca8 0:01
-張惠妹〈聽海〉 [1997] https://www.youtube.com/watch?v=mLk61pfiHQ0 0:01
-陶喆〈愛很簡單〉 [1997] https://www.youtube.com/watch?v=s1nlIafxVYQ 0:00
-王菲〈紅豆〉 [1998] https://www.youtube.com/watch?v=5wmfXve11rM 0:03
-孫燕姿〈天黑黑〉 [2000] https://www.youtube.com/watch?v=zi8z6RPYGV0 0:08
-梁靜茹〈勇氣〉 [2000] https://www.youtube.com/watch?v=nDchQNPuA0k 0:00
-梁靜茹〈分手快樂〉 [2002] https://www.youtube.com/watch?v=lBNYpPmjH8M 0:00
-周杰倫〈晴天〉 [2003] https://www.youtube.com/watch?v=DYptgVvkVLQ 0:00
-S.H.E〈Super Star〉 [2003] https://www.youtube.com/watch?v=gr5fNKK2FaA 0:00
-周杰倫〈七里香〉 [2004] https://www.youtube.com/watch?v=Bbp9ZaJD_eA 0:02
-五月天〈倔強〉 [2004] https://www.youtube.com/watch?v=R2s-H_crYkc 0:01
-林俊傑〈江南〉 [2004] https://www.youtube.com/watch?v=G97_rOdHcnY 0:00
-蔡依林〈倒帶〉 [2004] https://www.youtube.com/watch?v=cB7DIIG0ykk 0:00
-王力宏〈大城小愛〉 [2005] https://www.youtube.com/watch?v=J8mBwCEKRME 0:01
-光良〈童話〉 [2005] https://www.youtube.com/watch?v=bBcp_ljCBGU 0:00
-蘇打綠〈小情歌〉 [2006] https://www.youtube.com/watch?v=in8NNzwFa-s 0:07
-周杰倫〈青花瓷〉 [2007] https://www.youtube.com/watch?v=Z8Mqw0b9ADs 0:00
-蔡依林〈日不落〉 [2007] https://www.youtube.com/watch?v=1GA8z-Wliew 0:00
-周杰倫〈稻香〉 [2008] https://www.youtube.com/watch?v=sHD_z90ZKV0 0:00
-五月天〈突然好想你〉 [2008] https://www.youtube.com/watch?v=GtDRcXtDg-4 0:00
-蕭敬騰〈王妃〉 [2009] https://www.youtube.com/watch?v=qnDlH_S4Fak 0:01
-鄧紫棋〈泡沫〉 [2012] https://www.youtube.com/watch?v=mGeiABBB5f8 0:09
-田馥甄〈小幸運〉 [2015] https://www.youtube.com/watch?v=_sQSXwdtxlY 0:00
-周杰倫〈告白氣球〉 [2016] https://www.youtube.com/watch?v=bu7nU9Mhpyo 0:00
-五月天〈派對動物〉 [2016] https://www.youtube.com/watch?v=Fn7NLWHJw4s 0:00
-茄子蛋〈浪子回頭〉 [2016] https://www.youtube.com/watch?v=x3bDhtuC5yk 0:11
-草東沒有派對〈大風吹〉 [2016] https://www.youtube.com/watch?v=HqmpIQ9l-uA 0:05
-盧廣仲〈魚仔〉 [2017] https://www.youtube.com/watch?v=ybfWYpYhTQQ 0:00
-告五人〈愛人錯過〉 [2018] https://www.youtube.com/watch?v=6D79CYTxvOM 0:00`;
+const PLAYLISTS=[
+{
+"name": "華語經典 30",
+"tag": "zh",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n張學友〈吻別〉 [1993] https://www.youtube.com/watch?v=mIF-nn_y2_8 0:00\n伍佰〈挪威的森林〉 [1996] https://www.youtube.com/watch?v=gPpZJlE0Ca8 0:01\n張惠妹〈聽海〉 [1997] https://www.youtube.com/watch?v=mLk61pfiHQ0 0:01\n陶喆〈愛很簡單〉 [1997] https://www.youtube.com/watch?v=s1nlIafxVYQ 0:00\n王菲〈紅豆〉 [1998] https://www.youtube.com/watch?v=5wmfXve11rM 0:03\n孫燕姿〈天黑黑〉 [2000] https://www.youtube.com/watch?v=zi8z6RPYGV0 0:08\n梁靜茹〈勇氣〉 [2000] https://www.youtube.com/watch?v=nDchQNPuA0k 0:00\n梁靜茹〈分手快樂〉 [2002] https://www.youtube.com/watch?v=lBNYpPmjH8M 0:00\n周杰倫〈晴天〉 [2003] https://www.youtube.com/watch?v=DYptgVvkVLQ 0:00\nS.H.E〈Super Star〉 [2003] https://www.youtube.com/watch?v=gr5fNKK2FaA 0:00\n周杰倫〈七里香〉 [2004] https://www.youtube.com/watch?v=Bbp9ZaJD_eA 0:02\n五月天〈倔強〉 [2004] https://www.youtube.com/watch?v=R2s-H_crYkc 0:01\n林俊傑〈江南〉 [2004] https://www.youtube.com/watch?v=G97_rOdHcnY 0:00\n蔡依林〈倒帶〉 [2004] https://www.youtube.com/watch?v=cB7DIIG0ykk 0:00\n王力宏〈大城小愛〉 [2005] https://www.youtube.com/watch?v=J8mBwCEKRME 0:01\n光良〈童話〉 [2005] https://www.youtube.com/watch?v=bBcp_ljCBGU 0:00\n蘇打綠〈小情歌〉 [2006] https://www.youtube.com/watch?v=in8NNzwFa-s 0:07\n周杰倫〈青花瓷〉 [2007] https://www.youtube.com/watch?v=Z8Mqw0b9ADs 0:00\n蔡依林〈日不落〉 [2007] https://www.youtube.com/watch?v=1GA8z-Wliew 0:00\n周杰倫〈稻香〉 [2008] https://www.youtube.com/watch?v=sHD_z90ZKV0 0:00\n五月天〈突然好想你〉 [2008] https://www.youtube.com/watch?v=GtDRcXtDg-4 0:00\n蕭敬騰〈王妃〉 [2009] https://www.youtube.com/watch?v=qnDlH_S4Fak 0:01\n鄧紫棋〈泡沫〉 [2012] https://www.youtube.com/watch?v=mGeiABBB5f8 0:09\n田馥甄〈小幸運〉 [2015] https://www.youtube.com/watch?v=_sQSXwdtxlY 0:00\n周杰倫〈告白氣球〉 [2016] https://www.youtube.com/watch?v=bu7nU9Mhpyo 0:00\n五月天〈派對動物〉 [2016] https://www.youtube.com/watch?v=Fn7NLWHJw4s 0:00\n茄子蛋〈浪子回頭〉 [2016] https://www.youtube.com/watch?v=x3bDhtuC5yk 0:11\n草東沒有派對〈大風吹〉 [2016] https://www.youtube.com/watch?v=HqmpIQ9l-uA 0:05\n盧廣仲〈魚仔〉 [2017] https://www.youtube.com/watch?v=ybfWYpYhTQQ 0:00\n告五人〈愛人錯過〉 [2018] https://www.youtube.com/watch?v=6D79CYTxvOM 0:00"
+},
+{
+"name": "周杰倫專場",
+"tag": "zh",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n周杰倫〈龍捲風〉 [2000] https://www.youtube.com/watch?v=RPWDeLqsN0g 0:11\n周杰倫〈簡單愛〉 [2001] https://www.youtube.com/watch?v=Y4xCVlyCvX4 0:13\n周杰倫〈雙截棍〉 [2001] https://www.youtube.com/watch?v=OR-0wptI_u0 0:11\n周杰倫〈半島鐵盒〉 [2002] https://www.youtube.com/watch?v=duZDsG3tvoA 0:11\n周杰倫〈東風破〉 [2003] https://www.youtube.com/watch?v=qct0JLjaHDc 0:11\n周杰倫〈夜曲〉 [2005] https://www.youtube.com/watch?v=6Q0Pd53mojY 0:11\n周杰倫〈聽媽媽的話〉 [2006] https://www.youtube.com/watch?v=_B8RaLCNUZw 0:11\n周杰倫〈菊花台〉 [2006] https://www.youtube.com/watch?v=PdjbRvvJAzg 0:13\n周杰倫〈不能說的秘密〉 [2007] https://www.youtube.com/watch?v=duScl5B2YDM 0:00\n周杰倫〈說好的幸福呢〉 [2008] https://www.youtube.com/watch?v=mLFhTFiX0uM 0:00\n周杰倫〈給我一首歌的時間〉 [2008] https://www.youtube.com/watch?v=wt0RKW3aC84 0:00\n周杰倫〈煙花易冷〉 [2010] https://www.youtube.com/watch?v=COMHDRqAvYE 0:08\n周杰倫〈等你下課〉 [2018] https://www.youtube.com/watch?v=QQucPUfXUQQ 0:00\n周杰倫〈說好不哭〉 [2019] https://www.youtube.com/watch?v=HK7SPnGSxLM 0:00\n周杰倫〈最偉大的作品〉 [2022] https://www.youtube.com/watch?v=1emA1EFsPMM 0:00"
+},
+{
+"name": "台灣聽團",
+"tag": "zh",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n陳綺貞〈旅行的意義〉 [2004] https://www.youtube.com/watch?v=tv95k0zqnaA 0:00\n張懸〈寶貝〉 [2006] https://www.youtube.com/watch?v=jSaVNAQ9OJs 0:00\n宇宙人〈一起去跑步〉 [2012] https://www.youtube.com/watch?v=m99Py_8NtZE 0:04\n康士坦的變化球〈美好的事可不可以發生在我身上〉 [2013] https://www.youtube.com/watch?v=n7xF4UYrkq8 0:13\n滅火器〈島嶼天光〉 [2014] https://www.youtube.com/watch?v=riNecvPcmTE 0:00\n老王樂隊〈我還年輕 我還年輕〉 [2015] https://www.youtube.com/watch?v=NbNPJr_0tqA 0:00\n落日飛車〈My Jinji〉 [2016] https://www.youtube.com/watch?v=5xwFCtDc0fI 0:00\ndeca joins〈海浪〉 [2016] https://www.youtube.com/watch?v=FonjL7DQAUQ 0:01\n草東沒有派對〈山海〉 [2016] https://www.youtube.com/watch?v=j2311FZWoFQ 0:13\n草東沒有派對〈爛泥〉 [2019] https://www.youtube.com/watch?v=2fQ5es-qLaY 0:00\n告五人〈披星戴月的想你〉 [2019] https://www.youtube.com/watch?v=VpwAq7hiij0 1:11\n美秀集團〈電火王〉 [2019] https://www.youtube.com/watch?v=BuuIbTF0_b0 0:02\n八三夭〈想見你想見你想見你〉 [2019] https://www.youtube.com/watch?v=4iRupuNet3Q 0:02\n告五人〈唯一〉 [2021] https://www.youtube.com/watch?v=vxucCfcMFCk 0:14\n茄子蛋〈愛情你比我想的閣較偉大〉 [2021] https://www.youtube.com/watch?v=0rp3pP2Xwhs 0:11"
+},
+{
+"name": "老歌金曲",
+"tag": "zh",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n鄧麗君〈月亮代表我的心〉 [1977] https://www.youtube.com/watch?v=IiFm7AWP9n4 0:00\n鄧麗君〈甜蜜蜜〉 [1979] https://www.youtube.com/watch?v=5eF8oOWtsk4 0:07\n蔡琴〈恰似你的溫柔〉 [1979] https://www.youtube.com/watch?v=Yvg3L7RbFHY 0:00\n羅大佑〈童年〉 [1982] https://www.youtube.com/watch?v=8OTar5SNpYw 0:00\n鳳飛飛〈掌聲響起〉 [1986] https://www.youtube.com/watch?v=uOHFsskRBjc 0:00\n齊秦〈外面的世界〉 [1987] https://www.youtube.com/watch?v=PF3ZeNZOBE4 0:02\n王傑〈一場遊戲一場夢〉 [1987] https://www.youtube.com/watch?v=B2S1EngkjQk 0:14\n張雨生〈我的未來不是夢〉 [1988] https://www.youtube.com/watch?v=Oj0n81edrA4 0:06\n小虎隊〈青蘋果樂園〉 [1989] https://www.youtube.com/watch?v=geCQ53zHbVQ 0:00\n李宗盛〈鬼迷心竅〉 [1992] https://www.youtube.com/watch?v=wF0kCGbuVT4 0:02\n周華健〈花心〉 [1993] https://www.youtube.com/watch?v=IZ8-K3YPVN0 0:05\n張學友〈一千個傷心的理由〉 [1993] https://www.youtube.com/watch?v=Yl9sIjmaZP8 0:00\n劉德華〈忘情水〉 [1994] https://www.youtube.com/watch?v=pKoeIPTlTDI 0:04\n王菲〈我願意〉 [1994] https://www.youtube.com/watch?v=4Ah5gsjXVgo 0:01\n任賢齊〈心太軟〉 [1996] https://www.youtube.com/watch?v=ZSWeurc1yMw 0:04"
+},
+{
+"name": "英文經典",
+"tag": "en",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\nQueen〈Bohemian Rhapsody〉 [1975] https://www.youtube.com/watch?v=fJ9rUzIMcZQ 0:02\nEagles〈Hotel California〉 [1976] https://www.youtube.com/watch?v=dLl4PZtxia8 0:00\nABBA〈Dancing Queen〉 [1976] https://www.youtube.com/watch?v=xFrGuyw1V8s 0:02\nMichael Jackson〈Billie Jean〉 [1983] https://www.youtube.com/watch?v=Zi_XLOBDo_Y 0:01\na-ha〈Take On Me〉 [1985] https://www.youtube.com/watch?v=djV11Xbc914 0:03\nBon Jovi〈Livin' on a Prayer〉 [1986] https://www.youtube.com/watch?v=lDK9QqIzhwk 0:05\nWhitney Houston〈I Will Always Love You〉 [1992] https://www.youtube.com/watch?v=3JWTaaS7LdU 0:02\nOasis〈Wonderwall〉 [1995] https://www.youtube.com/watch?v=6hzrDeceEKc 0:15\nSpice Girls〈Wannabe〉 [1996] https://www.youtube.com/watch?v=gJLIiF15wjQ 0:00\nCeline Dion〈My Heart Will Go On〉 [1997] https://www.youtube.com/watch?v=9bFHsd3o1w0 0:01\nBritney Spears〈...Baby One More Time〉 [1998] https://www.youtube.com/watch?v=C-u5WLJ9Yk4 0:02\nBackstreet Boys〈I Want It That Way〉 [1999] https://www.youtube.com/watch?v=4fndeDfaWCg 0:00\nWestlife〈My Love〉 [2000] https://www.youtube.com/watch?v=ulOb9gIGGd0 0:00\nAvril Lavigne〈Complicated〉 [2002] https://www.youtube.com/watch?v=5NPBIwQyPWE 0:00\nLinkin Park〈Numb〉 [2003] https://www.youtube.com/watch?v=kXYiU_JCYtU 0:02"
+},
+{
+"name": "英文流行",
+"tag": "en",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\nAdele〈Rolling in the Deep〉 [2010] https://www.youtube.com/watch?v=rYEDA3JcQqw 0:01\nKaty Perry〈Roar〉 [2013] https://www.youtube.com/watch?v=CevxZvSJLk8 0:00\nPharrell Williams〈Happy〉 [2013] https://www.youtube.com/watch?v=ZbZSe6N_BXs 0:01\nTaylor Swift〈Shake It Off〉 [2014] https://www.youtube.com/watch?v=nfWlot6h_JM 0:00\nMark Ronson ft. Bruno Mars〈Uptown Funk〉 [2014] https://www.youtube.com/watch?v=OPf0YbXqDm0 0:00\nMaroon 5〈Sugar〉 [2015] https://www.youtube.com/watch?v=09R8_2nJtjg 0:04\nJustin Bieber〈Sorry〉 [2015] https://www.youtube.com/watch?v=fRh_vgS2dFE 0:03\nEd Sheeran〈Shape of You〉 [2017] https://www.youtube.com/watch?v=JGwWNGJdvx8 0:00\nLuis Fonsi〈Despacito〉 [2017] https://www.youtube.com/watch?v=kJQP7kiw5Fk 0:00\nBillie Eilish〈bad guy〉 [2019] https://www.youtube.com/watch?v=DyDfgMOUjCI 0:03\nThe Weeknd〈Blinding Lights〉 [2019] https://www.youtube.com/watch?v=4NRXx6U8ABQ 0:00\nDua Lipa〈Levitating〉 [2020] https://www.youtube.com/watch?v=TUVcZfQe-Kw 0:00\nOlivia Rodrigo〈drivers license〉 [2021] https://www.youtube.com/watch?v=ZmDBbnmKpqQ 0:00\nHarry Styles〈As It Was〉 [2022] https://www.youtube.com/watch?v=H5v3kku4y6Q 0:00\nMiley Cyrus〈Flowers〉 [2023] https://www.youtube.com/watch?v=G7KNmW9a75Y 0:00"
+},
+{
+"name": "偶像劇・青春回憶",
+"tag": "zh",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n劉若英〈後來〉 [2000] https://www.youtube.com/watch?v=t0igPuDjYUE 0:00\nF4〈流星雨〉 [2001] https://www.youtube.com/watch?v=ocTdA8NytIc 0:01\n戴佩妮〈你要的愛〉 [2001] https://www.youtube.com/watch?v=JuBJMTe4ZJc 0:00\nF.I.R.〈我們的愛〉 [2004] https://www.youtube.com/watch?v=88D2-J_pk7A 0:03\n王心凌〈愛你〉 [2004] https://www.youtube.com/watch?v=NAODcPQcy9U 0:04\n楊丞琳〈曖昧〉 [2005] https://www.youtube.com/watch?v=mebzXfWi87E 0:00\n楊丞琳〈左邊〉 [2006] https://www.youtube.com/watch?v=jCXBaMWqHdg 0:00\n張韶涵〈隱形的翅膀〉 [2006] https://www.youtube.com/watch?v=be2wvNFTLMc 0:00\n飛輪海〈只對你有感覺〉 [2006] https://www.youtube.com/watch?v=jS7zzyoixf8 0:03\n郭靜〈下一個天亮〉 [2008] https://www.youtube.com/watch?v=AEUmLttrY5s 0:00\n楊丞琳〈雨愛〉 [2009] https://www.youtube.com/watch?v=oec9R5ypf-o 0:00\n胡夏〈那些年〉 [2011] https://www.youtube.com/watch?v=xWzlwGVQ6_Q 0:00\n周興哲〈你，好不好？〉 [2018] https://www.youtube.com/watch?v=wSBXfzgqHtE 0:00\n韋禮安〈如果可以〉 [2021] https://www.youtube.com/watch?v=8MG--WuNW1Y 0:00\n莫文蔚〈這世界那麼多人〉 [2021] https://www.youtube.com/watch?v=xLscpRjb8DI 0:00"
+},
+{
+"name": "近年華語熱門",
+"tag": "zh",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n薛之謙〈演員〉 [2015] https://www.youtube.com/watch?v=XaN3kUz4KSw 0:00\n林俊傑〈不為誰而作的歌〉 [2015] https://www.youtube.com/watch?v=gd38-X3HpbM 0:00\n鄧紫棋〈光年之外〉 [2016] https://www.youtube.com/watch?v=T4SimnaiktU 0:00\n毛不易〈消愁〉 [2017] https://www.youtube.com/watch?v=9C3Nd5dRin8 0:01\n毛不易〈像我這樣的人〉 [2017] https://www.youtube.com/watch?v=nBcYrqsv5tc 0:14\n李榮浩〈年少有為〉 [2018] https://www.youtube.com/watch?v=Dnj5Tcpev0Q 0:03\n蔡依林〈玫瑰少年〉 [2018] https://www.youtube.com/watch?v=feOq6MWeUXA 0:01\n李榮浩〈麻雀〉 [2019] https://www.youtube.com/watch?v=2l4x_TvBKiw 0:00\n吳青峰〈起風了〉 [2019] https://www.youtube.com/watch?v=zsazLW9apys 0:00\n周興哲〈怎麼了〉 [2020] https://www.youtube.com/watch?v=Y2ge3KrdeWs 0:00\n盧廣仲〈刻在我心底的名字〉 [2020] https://www.youtube.com/watch?v=m78lJuzftcc 0:02\n薛之謙〈天外來物〉 [2020] https://www.youtube.com/watch?v=SfE6cG4KfHA 0:00\n陳奕迅〈孤勇者〉 [2021] https://www.youtube.com/watch?v=Hlp8XD0R5qo 0:05\n鄧紫棋〈句號〉 [2022] https://www.youtube.com/watch?v=7XlqcS6B7WA 0:00\n告五人〈給你一瓶魔法藥水〉 [2022] https://www.youtube.com/watch?v=5cYb-rJhm6I 0:00"
+},
+{
+"name": "台語歌",
+"tag": "tw",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n洪榮宏〈一支小雨傘〉 [1982] https://www.youtube.com/watch?v=5_eXogZgr48 0:00\n江蕙〈酒後的心聲〉 [1987] https://www.youtube.com/watch?v=Y1H22SMnS5M 0:00\n葉啟田〈愛拼才會贏〉 [1988] https://www.youtube.com/watch?v=Pf3Ecmnonik 0:00\n林強〈向前走〉 [1990] https://www.youtube.com/watch?v=gD14iiXq7Xw 0:01\n張秀卿〈車站〉 [1992] https://www.youtube.com/watch?v=FbqwJeERWNA 0:06\n江蕙＆施文彬〈傷心酒店〉 [1994] https://www.youtube.com/watch?v=Jl0CAEZn9II 0:00\n陳雷〈歡喜就好〉 [1995] https://www.youtube.com/watch?v=GoxQMlsFo7c 0:01\n黃妃〈追追追〉 [1996] https://www.youtube.com/watch?v=4oTDJkVtWgU 0:00\n伍佰〈妳是我的花朵〉 [1998] https://www.youtube.com/watch?v=FXg4LXsg14s 0:01\n伍佰〈樹枝孤鳥〉 [1998] https://www.youtube.com/watch?v=ObSPLQ-1fJI 0:00\n江蕙〈家後〉 [2001] https://www.youtube.com/watch?v=KAntP2xs8FE 0:02\n江蕙〈半醉半清醒〉 [2004] https://www.youtube.com/watch?v=XsOh9rcv7Eo 0:00\n江蕙〈落雨聲〉 [2009] https://www.youtube.com/watch?v=a53LYWWuAWU 0:03\n謝金燕〈姐姐〉 [2014] https://www.youtube.com/watch?v=mTSuiGubCHE 0:00\n滅火器〈晚安台灣〉 [2016] https://www.youtube.com/watch?v=MaJYdrJP3uw 0:00"
+},
+{
+"name": "K-pop",
+"tag": "kr",
+"mode": "intro",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\nWonder Girls〈Nobody〉 [2008] https://www.youtube.com/watch?v=QZBn1e9pr2Q 0:00\nSuper Junior〈Sorry, Sorry〉 [2009] https://www.youtube.com/watch?v=x6QA3m58DQw 0:00\n少女時代〈Gee〉 [2009] https://www.youtube.com/watch?v=U7mPqycQ0tQ 0:00\nIU〈Good Day〉 [2010] https://www.youtube.com/watch?v=jeqdYqsrsA0 0:00\nPSY〈Gangnam Style〉 [2012] https://www.youtube.com/watch?v=9bZkp7q19f0 0:04\nEXO〈Growl〉 [2013] https://www.youtube.com/watch?v=I3dezFzsNss 0:00\nBIGBANG〈BANG BANG BANG〉 [2015] https://www.youtube.com/watch?v=2ips2mM7Zqw 0:02\nTWICE〈TT〉 [2016] https://www.youtube.com/watch?v=ePpPVE-GGJw 0:02\nBLACKPINK〈DDU-DU DDU-DU〉 [2018] https://www.youtube.com/watch?v=IHNzOHi8sJs 0:01\nBTS〈Dynamite〉 [2020] https://www.youtube.com/watch?v=gdZLi9oWNZg 0:00\nBLACKPINK〈How You Like That〉 [2020] https://www.youtube.com/watch?v=32si5cfrCNc 0:01\nBTS〈Butter〉 [2021] https://www.youtube.com/watch?v=WMweEpGlu_U 0:00\naespa〈Next Level〉 [2021] https://www.youtube.com/watch?v=4TWR90KJl84 0:00\nIVE〈LOVE DIVE〉 [2022] https://www.youtube.com/watch?v=Y8JFxS1HlDo 0:00\nNewJeans〈Hype Boy〉 [2022] https://www.youtube.com/watch?v=11cta61wi0g 0:00"
+},
+{
+"name": "華語金曲・副歌版",
+"tag": "zh",
+"mode": "chorus",
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n周華健〈朋友〉 [1997] https://www.youtube.com/watch?v=6lbPgfKK7m4 0:00 副0:46\n張信哲〈愛如潮水〉 [1993] https://www.youtube.com/watch?v=LPl420bwG8c 0:00 副1:16\n任賢齊〈對面的女孩看過來〉 [1998] https://www.youtube.com/watch?v=6aosRlnxg9I 0:00 副1:48\n張宇〈月亮惹的禍〉 [1998] https://www.youtube.com/watch?v=1YJ8wSH6HBU 0:00 副0:58\n動力火車〈當〉 [1998] https://www.youtube.com/watch?v=XQl8NJceqjY 0:00 副1:45\n五月天〈擁抱〉 [1999] https://www.youtube.com/watch?v=lvDa3r1pNuE 0:00 副0:44\n張震嶽〈愛我別走〉 [1999] https://www.youtube.com/watch?v=zPeMFCDPgKE 0:00 副1:06\n張韶涵〈歐若拉〉 [2004] https://www.youtube.com/watch?v=dmwJaG-R1iM 0:00 副0:47\n孫燕姿〈綠光〉 [2001] https://www.youtube.com/watch?v=pztQtHvZkRc 0:00 副1:43\n王力宏〈唯一〉 [2001] https://www.youtube.com/watch?v=P7Qv4AV_StM 0:00 副1:15\n陳奕迅〈愛情轉移〉 [2007] https://www.youtube.com/watch?v=RIq7Tz9nYD8 0:00 副0:57\n信樂團〈死了都要愛〉 [2002] https://www.youtube.com/watch?v=p-ehKBc9p9k 0:00 副1:26\n孫燕姿〈遇見〉 [2003] https://www.youtube.com/watch?v=m4nu_F_9dWU 0:00 副1:13\n蔡依林〈說愛你〉 [2003] https://www.youtube.com/watch?v=_Y_mlCbfn_Y 0:00 副0:34\n范瑋琪〈最初的夢想〉 [2003] https://www.youtube.com/watch?v=wGAmgmZg-48 0:00 副1:32\n陳奕迅〈十年〉 [2003] https://www.youtube.com/watch?v=JM9rx_hN1Ko 0:00 副0:59\n伍佰〈突然的自我〉 [2003] https://www.youtube.com/watch?v=CT-P8-D8CC0 0:00 副0:56\n梁靜茹〈寧夏〉 [2004] https://www.youtube.com/watch?v=MmtVl9CssYE 0:00 副1:29\n五月天〈知足〉 [2005] https://www.youtube.com/watch?v=_o0oeyCtoFA 0:00 副0:36\n梁靜茹〈可惜不是你〉 [2005] https://www.youtube.com/watch?v=k_l7FVsqUyM 0:00 副1:55\nS.H.E〈不想長大〉 [2005] https://www.youtube.com/watch?v=KV17QLB2BJs 0:00 副0:59\n林俊傑〈一千年以後〉 [2006] https://www.youtube.com/watch?v=m0z1XfphYzU 0:00 副0:52\n蔡依林〈舞孃〉 [2006] https://www.youtube.com/watch?v=0EN3MnGEBXk 0:00 副0:37\n陳奕迅〈好久不見〉 [2007] https://www.youtube.com/watch?v=UsFQ9kbpQhw 0:00 副1:06\nS.H.E〈中國話〉 [2007] https://www.youtube.com/watch?v=jGauF0PuDFE 0:00 副0:45\n林俊傑〈小酒窩〉 [2008] https://www.youtube.com/watch?v=h-woMj_Vt0A 0:00 副0:48\n林宥嘉〈說謊〉 [2009] https://www.youtube.com/watch?v=ftfJRzW0MPo 0:00 副1:32\n田馥甄〈你就不要想起我〉 [2011] https://www.youtube.com/watch?v=GsKbnsUN2RE 0:00 副1:54\n張棟樑〈當你孤單你會想起誰〉 [2004] https://www.youtube.com/watch?v=FIQstRobWBg 0:00 副1:19\n林俊傑〈修煉愛情〉 [2013] https://www.youtube.com/watch?v=LWV-f6dMN3Q 0:00 副0:45"
+}
+];
+const SAMPLE=PLAYLISTS[0].text;
+const BANK_X={"en":[["Madonna〈Like a Virgin〉",1984],["Cyndi Lauper〈Girls Just Want to Have Fun〉",1983],["Wham!〈Last Christmas〉",1984],["Guns N' Roses〈Sweet Child o' Mine〉",1987],["Nirvana〈Smells Like Teen Spirit〉",1991],["Mariah Carey〈Hero〉",1993],["Boyz II Men〈End of the Road〉",1992],["TLC〈No Scrubs〉",1999],["NSYNC〈Bye Bye Bye〉",2000],["Eminem〈Lose Yourself〉",2002],["Beyoncé〈Crazy in Love〉",2003],["Kelly Clarkson〈Since U Been Gone〉",2004],["James Blunt〈You're Beautiful〉",2005],["Rihanna〈Umbrella〉",2007],["Lady Gaga〈Poker Face〉",2008],["Black Eyed Peas〈I Gotta Feeling〉",2009],["Bruno Mars〈Just the Way You Are〉",2010],["LMFAO〈Party Rock Anthem〉",2011],["Carly Rae Jepsen〈Call Me Maybe〉",2012],["Avicii〈Wake Me Up〉",2013],["Sam Smith〈Stay with Me〉",2014],["Charlie Puth〈See You Again〉",2015],["The Chainsmokers〈Closer〉",2016],["Imagine Dragons〈Believer〉",2017],["Lewis Capaldi〈Someone You Loved〉",2019],["Ed Sheeran〈Perfect〉",2017],["Taylor Swift〈Love Story〉",2008],["Taylor Swift〈Blank Space〉",2014],["Justin Bieber〈Baby〉",2010],["Coldplay〈Viva la Vida〉",2008],["Maroon 5〈Moves like Jagger〉",2011],["Adele〈Someone Like You〉",2011],["Bruno Mars〈That's What I Like〉",2017],["Glass Animals〈Heat Waves〉",2020]],"kr":[["BIGBANG〈Fantastic Baby〉",2012],["少女時代〈I Got a Boy〉",2013],["2NE1〈I Am the Best〉",2011],["SHINee〈Ring Ding Dong〉",2009],["T-ara〈Roly-Poly〉",2011],["Girl's Day〈Something〉",2014],["Red Velvet〈Red Flavor〉",2017],["TWICE〈Cheer Up〉",2016],["TWICE〈What is Love?〉",2018],["BTS〈DNA〉",2017],["BTS〈Boy With Luv〉",2019],["BLACKPINK〈Kill This Love〉",2019],["ITZY〈DALLA DALLA〉",2019],["(G)I-DLE〈TOMBOY〉",2022],["IVE〈ELEVEN〉",2021],["NewJeans〈Ditto〉",2022],["aespa〈Supernova〉",2024],["LE SSERAFIM〈ANTIFRAGILE〉",2022],["SEVENTEEN〈Very Nice〉",2016],["EXO〈Love Shot〉",2018],["IU〈Palette〉",2017],["Wonder Girls〈Tell Me〉",2007],["Super Junior〈Mr. Simple〉",2011],["PSY〈Gentleman〉",2013]],"tw":[["江蕙〈惜別的海岸〉",1990],["江蕙〈博杯〉",1999],["黃乙玲〈講什麼山盟海誓〉",1991],["陳小雲〈舞女〉",1990],["葉啟田〈內山姑娘要出嫁〉",1978],["洪榮宏〈愛你一萬年〉",1993],["蔡秋鳳〈什麼樂〉",1985],["蔡小虎〈心內的話〉",1999],["伍佰〈台灣製造〉",1998],["五月天〈志明與春嬌〉",1999],["陳昇〈鼓聲若響〉",1995],["沈文程〈心事誰人知〉",1982],["王識賢〈紅塵來去夢一場〉",1997],["黃妃〈非常女〉",2008],["玖壹壹〈嘻哈庄腳情〉",2014],["茄子蛋〈浪子回頭〉",2016]]};
 
 // 歌單外的干擾歌庫：只當錯誤選項，不會被播放
 const BANK=[["張學友〈一千個傷心的理由〉",1993],["張學友〈她來聽我的演唱會〉",1993],["劉德華〈忘情水〉",1994],["劉德華〈冰雨〉",1997],["郭富城〈對你愛不完〉",1990],["王傑〈一場遊戲一場夢〉",1987],["周華健〈朋友〉",1997],["周華健〈花心〉",1993],["任賢齊〈心太軟〉",1996],["任賢齊〈對面的女孩看過來〉",1998],["張宇〈月亮惹的禍〉",1998],["張信哲〈愛如潮水〉",1993],["動力火車〈當〉",1998],["黃品源〈你怎麼捨得我難過〉",1990],["張雨生〈大海〉",1992],["伍佰〈浪人情歌〉",1994],["伍佰〈突然的自我〉",2003],["張惠妹〈姊妹〉",1996],["張惠妹〈記得〉",2001],["王菲〈我願意〉",1994],["王菲〈容易受傷的女人〉",1992],["王菲〈傳奇〉",2010],["陶喆〈普通朋友〉",1999],["陶喆〈找自己〉",2002],["張震嶽〈愛我別走〉",1999],["莫文蔚〈他不愛我〉",2000],["孫燕姿〈綠光〉",2001],["孫燕姿〈遇見〉",2003],["孫燕姿〈我懷念的〉",2006],["梁靜茹〈寧夏〉",2004],["梁靜茹〈可惜不是你〉",2005],["梁靜茹〈暖暖〉",2006],["周杰倫〈龍捲風〉",2000],["周杰倫〈簡單愛〉",2001],["周杰倫〈雙截棍〉",2001],["周杰倫〈安靜〉",2001],["周杰倫〈半島鐵盒〉",2002],["周杰倫〈東風破〉",2003],["周杰倫〈夜曲〉",2005],["周杰倫〈聽媽媽的話〉",2006],["周杰倫〈菊花台〉",2006],["周杰倫〈不能說的秘密〉",2007],["周杰倫〈說好的幸福呢〉",2008],["周杰倫〈給我一首歌的時間〉",2008],["周杰倫〈煙花易冷〉",2010],["周杰倫〈等你下課〉",2018],["周杰倫〈說好不哭〉",2019],["五月天〈擁抱〉",1999],["五月天〈你不是真正的快樂〉",2004],["五月天〈知足〉",2005],["五月天〈戀愛ing〉",2006],["五月天〈私奔到月球〉",2007],["五月天〈乾杯〉",2011],["五月天〈後來的我們〉",2016],["五月天〈頑固〉",2016],["蔡依林〈布拉格廣場〉",2003],["蔡依林〈說愛你〉",2003],["蔡依林〈看我72變〉",2003],["蔡依林〈舞孃〉",2006],["蔡依林〈大藝術家〉",2012],["蔡依林〈怪美的〉",2018],["林俊傑〈曹操〉",2006],["林俊傑〈一千年以後〉",2006],["林俊傑〈小酒窩〉",2008],["林俊傑〈她說〉",2010],["林俊傑〈修煉愛情〉",2013],["林俊傑〈不為誰而作的歌〉",2015],["王力宏〈唯一〉",2001],["王力宏〈心中的日月〉",2004],["王力宏〈蓋世英雄〉",2005],["王力宏〈落葉歸根〉",2007],["S.H.E〈戀人未滿〉",2002],["S.H.E〈不想長大〉",2005],["S.H.E〈中國話〉",2007],["F4〈流星雨〉",2001],["信樂團〈死了都要愛〉",2002],["范瑋琪〈最初的夢想〉",2003],["李聖傑〈痴心絕對〉",2003],["張棟樑〈當你孤單你會想起誰〉",2004],["張韶涵〈歐若拉〉",2004],["張韶涵〈隱形的翅膀〉",2006],["楊丞琳〈曖昧〉",2005],["楊丞琳〈雨愛〉",2009],["陳奕迅〈十年〉",2003],["陳奕迅〈浮誇〉",2005],["陳奕迅〈好久不見〉",2007],["陳奕迅〈愛情轉移〉",2007],["蘇打綠〈無與倫比的美麗〉",2007],["林宥嘉〈說謊〉",2009],["林宥嘉〈殘酷月光〉",2009],["田馥甄〈魔鬼中的天使〉",2010],["田馥甄〈你就不要想起我〉",2011],["鄧紫棋〈喜歡你〉",2014],["鄧紫棋〈光年之外〉",2016],["鄧紫棋〈倒數〉",2018],["李榮浩〈李白〉",2013],["李榮浩〈年少有為〉",2018],["薛之謙〈演員〉",2015],["毛不易〈消愁〉",2017],["草東沒有派對〈山海〉",2016],["草東沒有派對〈爛泥〉",2019],["告五人〈披星戴月的想你〉",2019],["告五人〈唯一〉",2021]];
@@ -185,18 +222,24 @@ function parseSongs(text){
       line=line.replace(u," ");
     }
     let year=null;const ym=line.match(/[\[［](\d{4})[\]］]/);if(ym){year=+ym[1];line=line.replace(ym[0]," ")}
+    let chorus=null;const cm=line.match(/副\s*(\d{1,2}):(\d{2})/);if(cm){chorus=(+cm[1])*60+(+cm[2]);line=line.replace(cm[0]," ")}
     const tm=line.match(/\s(\d{1,2}):(\d{2})\s*$/)||line.match(/\s(\d{1,4})\s*$/);
     if(tm){start=tm.length===3?(+tm[1])*60+(+tm[2]):+tm[1];line=line.slice(0,tm.index)}
     const name=line.replace(/\s+/g," ").trim();
-    if(name)out.push({name,vid,start,year});
+    if(name)out.push({name,vid,start,year,chorus});
   }
   return out;
 }
-function buildQuestions(songs,random){
+const PARSED=new Map();
+function parsedList(p){if(!PARSED.has(p))PARSED.set(p,parseSongs(p.text));return PARSED.get(p)}
+function buildQuestions(songs,random,tag){
+  tag=tag||"zh";
   const order=random?shuffle(songs):songs.slice();
-  const pool=new Map();
-  for(const x of songs)if(!pool.has(x.name))pool.set(x.name,x.year||null);
-  for(const [n,y] of BANK)if(!pool.has(n))pool.set(n,y);
+  const pool=new Map();const add=(n,y)=>{if(!pool.has(n))pool.set(n,y||null)};
+  for(const x of songs)add(x.name,x.year);
+  for(const p of PLAYLISTS)if(p.tag===tag)for(const x of parsedList(p))add(x.name,x.year);
+  if(tag==="zh")for(const [n,y] of BANK)add(n,y);
+  for(const [n,y] of (BANK_X[tag]||[]))add(n,y);
   const names=[...pool.keys()];
   const N=Math.min(8,names.length);
   const artist=n=>n.split(/[〈《「(（]/)[0].trim();
@@ -260,45 +303,53 @@ function landing(err){
       h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
       h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v6")));
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v7")));
   (hashCode?name:code).focus();
 }
 
 /* ================= HOST SETUP ================= */
 function hostSetup(){
-  const saved=LS.get("sp:setup4");
-  const ta=h("textarea",{id:"songs",spellcheck:"false"});ta.value=saved?.text??SAMPLE;
+  const saved=LS.get("sp:setup5");
+  let pi=Math.min(saved?.pi??0,PLAYLISTS.length-1);
+  const ta=h("textarea",{id:"songs",spellcheck:"false"});ta.value=saved?.text||PLAYLISTS[pi].text;
+  const pl=h("select",{id:"plist"},PLAYLISTS.map((p,i)=>h("option",{value:i,selected:i===pi},p.name+"（"+parsedList(p).length+" 首）")));
+  const modeNote=h("p",{class:"muted"});
   const ans=h("select",{id:"ans"},[10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.ans||20)},s+" 秒")));
   const clip=h("select",{id:"clip"},[0,5,10,15,20].map(s=>h("option",{value:s,selected:s===(saved?.play??0)},s?"只播 "+s+" 秒":"播到作答時間結束")));
   const rnd=h("input",{type:"checkbox",id:"rnd",checked:saved?.rnd??true,style:"width:auto"});
   const list=h("ul",{class:"songlist"});const err=h("p",{class:"err"});const info=h("p",{class:"muted"});
   const upd=()=>{
-    const s=parseSongs(ta.value);const withV=s.filter(x=>x.vid).length;
+    const s=parseSongs(ta.value);const withV=s.filter(x=>x.vid).length;const ch=PLAYLISTS[pi].mode==="chorus";
+    modeNote.textContent=ch?"這個歌單直接從副歌開始播。":"這個歌單從前奏開始播（已跳過 MV 開頭沒聲音的部分）。";
     info.textContent=`共 ${s.length} 首，${withV} 首有 YouTube 連結會自動播放，其餘需要主持人自己播。`;
-    list.replaceChildren(...s.map((x,i)=>h("li",{},h("span",{class:"n"},i+1),h("span",{class:"nm"},x.name,x.vid&&x.start?`（從 ${Math.floor(x.start/60)}:${String(x.start%60).padStart(2,"0")} 開始）`:""),
+    list.replaceChildren(...s.map((x,i)=>h("li",{},h("span",{class:"n"},i+1),h("span",{class:"nm"},x.name,(t=>x.vid&&t?`（從 ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")} 開始）`:"")(ch&&x.chorus!=null?x.chorus:x.start)),
       x.vid?h("span",{class:"tag ok"},"✓ 有連結"):h("a",{class:"tag no",href:"https://www.youtube.com/results?search_query="+encodeURIComponent(x.name),target:"_blank",rel:"noopener"},"找 YouTube ↗"))));
     err.textContent=s.length<2?"至少要 2 首歌":"";
   };
-  ta.addEventListener("input",upd);upd();
+  ta.addEventListener("input",upd);
+  pl.addEventListener("change",()=>{pi=+pl.value;ta.value=PLAYLISTS[pi].text;upd()});
+  upd();
   app.replaceChildren(
     h("header",{class:"row",style:"justify-content:space-between"},h("div",{},brand(),h("h1",{},"準備歌單")),h("button",{class:"link",onclick:()=>landing()},"← 回到加入畫面")),
     h("div",{class:"card"},
-      h("label",{for:"songs"},"歌單（一行一首：歌名、[發行年份]、YouTube 網址、從第幾秒開始播）",ta),
-      h("p",{class:"muted"},"每題 8 個選項。錯誤選項會從歌單和內建的 100 首熱門歌裡，挑發行年份接近或同一位歌手的歌，每題都不一樣，所以記得寫上年份。按「找 YouTube」打開搜尋，複製影片網址貼到該行後面即可；想從副歌開始播，就在最後加上時間，例如 1:05。"),
+      h("label",{for:"plist"},"選擇歌單",pl),modeNote,
+      h("label",{for:"songs"},"歌曲（可以直接修改；一行一首：歌名、[發行年份]、YouTube 網址、開始時間、副歌時間）",ta),
+      h("p",{class:"muted"},"每題 8 個選項，錯誤選項會挑同類型（華語／英文／台語／韓文）裡發行年份接近或同一位歌手的歌，也包含不在歌單裡的歌。自己加歌時：按「找 YouTube」複製影片網址貼到該行後面；最後加上時間（例如 0:05）就從那裡開始播。"),
       info,list,err,
       h("div",{class:"row"},
         h("label",{for:"clip",class:"grow"},"音樂播放長度",clip),
         h("label",{for:"ans",class:"grow"},"作答時間",ans),
         h("label",{for:"rnd",class:"grow",style:"flex-direction:row;align-items:center;gap:8px"},rnd,"隨機順序")),
       h("button",{class:"go",onclick:()=>{const s=parseSongs(ta.value);if(s.length<2){err.textContent="至少要 2 首歌";return}
-        LS.set("sp:setup4",{text:ta.value,ans:+ans.value,play:+clip.value,rnd:rnd.checked});
+        LS.set("sp:setup5",{pi,text:ta.value===PLAYLISTS[pi].text?null:ta.value,ans:+ans.value,play:+clip.value,rnd:rnd.checked});
         if(s.some(x=>x.vid))loadYT();
-        openRoom(buildQuestions(s,rnd.checked),+ans.value,+clip.value)}},"開房間")));
+        const P=PLAYLISTS[pi];
+        openRoom(buildQuestions(s,rnd.checked,P.tag),+ans.value,+clip.value,P.mode,P.tag)}},"開房間")));
 }
 
 /* ================= HOST GAME ================= */
-function openRoom(qs,limit,clip){
-  const G={qs,limit,clip,qi:-1,phase:"lobby",players:new Map(),deadline:0,start:0,tick:null,peer:null,code:"",ytErr:null};
+function openRoom(qs,limit,clip,mode,tag){
+  const G={qs,limit,clip,mode,tag,qi:-1,phase:"lobby",players:new Map(),deadline:0,start:0,tick:null,peer:null,code:"",ytErr:null};
   keepAwake();
   app.replaceChildren(h("p",{class:"muted",style:"text-align:center;margin-top:20vh"},"正在開房間⋯"));
   window.addEventListener("yterror",e=>{G.ytErr=e.detail;const c=$("#ytmsg");if(c)c.textContent="這支影片不能嵌入播放（錯誤 "+e.detail+"），請主持人手動播放這首。"});
@@ -363,7 +414,8 @@ function openRoom(qs,limit,clip){
   function playClip(q,full){
     G.ytErr=null;
     if(!q.vid||!YTP||!YTP.loadVideoById)return false;
-    const o={videoId:q.vid,startSeconds:q.start||0};if(!full)o.endSeconds=(q.start||0)+(G.clip||G.limit+3);
+    const st=(G.mode==="chorus"&&q.chorus!=null)?q.chorus:(q.start||0);
+    const o={videoId:q.vid,startSeconds:st};if(!full)o.endSeconds=st+(G.clip||G.limit+3);
     try{YTP.loadVideoById(o);YTP.unMute&&YTP.unMute();YTP.setVolume&&YTP.setVolume(100);return true}catch(e){return false}
   }
   function stopMusic(){try{YTP&&YTP.stopVideo&&YTP.stopVideo()}catch(e){}}
@@ -462,7 +514,7 @@ function openRoom(qs,limit,clip){
         h("div",{class:"podium"},pod(r[1],"p2","🥈"),pod(r[0],"p1","🥇"),pod(r[2],"p3","🥉")),
         h("div",{class:"board"},r.slice(3).map((p,i)=>h("div",{class:"brow"},h("span",{class:"r"},"#"+(i+4)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)))),
         h("div",{class:"row",style:"justify-content:flex-end"},
-          h("button",{class:"ghost",onclick:()=>{for(const p of G.players.values()){p.score=0;p.ans=null;p.last=null}G.qs=buildQuestions(G.qs.map(({name,vid,start,year})=>({name,vid,start,year})),true);G.qi=-1;G.phase="lobby";render();pushAll()}},"同一群人再玩一次"),
+          h("button",{class:"ghost",onclick:()=>{for(const p of G.players.values()){p.score=0;p.ans=null;p.last=null}G.qs=buildQuestions(G.qs.map(({name,vid,start,year,chorus})=>({name,vid,start,year,chorus})),true,G.tag);G.qi=-1;G.phase="lobby";render();pushAll()}},"同一群人再玩一次"),
           h("button",{class:"ghost",onclick:()=>{closeRoom();hostSetup()}},"換歌單、關閉房間")));
     }
   }
@@ -490,7 +542,7 @@ function startPlayer(code,name){
     try{cl=await mqttConnect(BROKERS[bi],{will:{topic:up,payload:JSON.stringify({t:"bye",pid:tok}),qos:1}})}
     catch(e){status("連不上連線伺服器","請確認手機有網路；連 Wi-Fi 的話可以改用行動網路再試");return}
     const askJoin=setInterval(()=>{if(!joined&&!dead)pub({t:"join",name})},2000);
-    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v6）")}},15000);
+    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v7）")}},15000);
     cl.on("message",(topic,buf)=>{
       if(dead)return;const s=buf.toString();
       if(topic===base+"hello"){
