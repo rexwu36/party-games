@@ -229,7 +229,8 @@ function landing(err){
     h("div",{class:"narrow",style:"display:flex;flex-direction:column;gap:18px;margin-top:6vh"},
       h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
       h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
-      h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間"))));
+      h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v3")));
   (hashCode?name:code).focus();
 }
 
@@ -458,17 +459,18 @@ function startPlayer(code,name){
   (async()=>{
     try{cl=await mqttConnect(BROKERS[bi],{will:{topic:up,payload:JSON.stringify({t:"bye",pid:tok}),qos:1}})}
     catch(e){status("連不上連線伺服器","請確認手機有網路；連 Wi-Fi 的話可以改用行動網路再試");return}
-    const noRoom=setTimeout(()=>{if(!helloSeen){dead=true;cl.end(true);landing("找不到這個房間，請確認房間碼")}},8000);
+    const askJoin=setInterval(()=>{if(!joined&&!dead)pub({t:"join",name})},2000);
+    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v3）")}},15000);
     cl.on("message",(topic,buf)=>{
       if(dead)return;const s=buf.toString();
       if(topic===base+"hello"){
         if(!s){if(joined)status("主持人暫時離線","等主持人回來⋯");return}
-        helloSeen=true;clearTimeout(noRoom);pub({t:"join",name});return;
+        helloSeen=true;pub({t:"join",name});return;
       }
       let d;try{d=JSON.parse(s)}catch(e){return}onMsg(d);
     });
     cl.on("offline",()=>{if(!dead&&joined)status("連線中斷，重新連線中⋯","請保持這個頁面開著")});
-    cl.subscribe([base+"hello",base+"p/"+tok],{qos:1});
+    cl.subscribe([base+"hello",base+"p/"+tok],{qos:1},()=>pub({t:"join",name}));
     setInterval(()=>{if(!dead&&cl.connected)pub({t:"ping"})},8000);
   })();
   function onMsg(d){
