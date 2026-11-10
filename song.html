@@ -11,7 +11,7 @@
 /* Layout: a stage. Host = projector screen with a hidden player; phones = four answer tiles */
 :root{
   --bg:#141033; --bg2:#231b55; --panel:#fff; --panel-ink:#141033; --ink:#fff; --muted:#b8b0e8;
-  --a:#f25f5c; --b:#1fb5a8; --c:#9b5de5; --d:#f39a2b; --good:#2bc46d; --bad:#e8434b;
+  --a:#f25f5c; --b:#1fb5a8; --c:#9b5de5; --d:#f39a2b; --e:#3a7bd5; --f:#e0479e; --g:#4f9a2a; --h:#8d6e63; --good:#2bc46d; --bad:#e8434b;
   --f-display:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --f-num:"Space Mono",ui-monospace,monospace;
   color-scheme:dark;
@@ -76,7 +76,9 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .opt{display:flex;align-items:center;gap:14px;border-radius:14px;padding:16px;font-weight:900;font-size:clamp(1rem,2.4vw,1.5rem);color:#fff;min-height:76px;text-align:left}
 .opt .k{font-family:var(--f-num);background:rgba(0,0,0,.22);border-radius:8px;width:44px;height:44px;display:grid;place-items:center;flex:0 0 auto}
-.o0{background:var(--a)}.o1{background:var(--b)}.o2{background:var(--c)}.o3{background:var(--d)}
+.o0{background:var(--a)}.o1{background:var(--b)}.o2{background:var(--c)}.o3{background:var(--d)}.o4{background:var(--e)}.o5{background:var(--f)}.o6{background:var(--g)}.o7{background:var(--h)}
+.opts.many{grid-template-columns:repeat(4,minmax(0,1fr))}.opts.many .opt{font-size:clamp(.9rem,1.7vw,1.2rem);min-height:64px;padding:12px;gap:10px}.opts.many .opt .k{width:34px;height:34px}
+.pad.many .opt{min-height:68px;font-size:.92rem;padding:8px;gap:4px}.pad.many .opt .k{width:30px;height:30px;font-size:1rem}
 .opt.dim{opacity:.25}
 .opt .cnt{margin-left:auto;font-family:var(--f-num);white-space:nowrap}
 .opt.right{outline:5px solid #fff;outline-offset:-5px}
@@ -101,7 +103,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .me{display:flex;justify-content:space-between;font-weight:900;padding:8px 4px}
 .me .s{font-family:var(--f-num)}
 .note{background:var(--d);color:var(--panel-ink);border-radius:10px;padding:8px 12px;font-weight:700}
-@media (max-width:640px){.lobby{grid-template-columns:1fr}.qr{justify-self:center}.opt{min-height:60px;padding:12px}}
+@media (max-width:640px){.opts.many{grid-template-columns:1fr 1fr}.lobby{grid-template-columns:1fr}.qr{justify-self:center}.opt{min-height:60px;padding:12px}}
 </style>
 </head>
 <body>
@@ -113,35 +115,45 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <script>
 "use strict";
 const PREFIX="songparty-zh-";
-const SAMPLE=`# 一行一首：歌名　YouTube 網址　從第幾秒開始播（可省略）
-# 例：周杰倫〈晴天〉 https://www.youtube.com/watch?v=xxxxxxxxxxx 0:35
-# 沒有網址的歌，主持人要自己用 Spotify 或 YouTube 播
-張惠妹〈聽海〉 https://www.youtube.com/watch?v=mLk61pfiHQ0
-蔡依林〈日不落〉 https://www.youtube.com/watch?v=1GA8z-Wliew
-王力宏〈大城小愛〉 https://www.youtube.com/watch?v=J8mBwCEKRME
-梁靜茹〈分手快樂〉 https://www.youtube.com/watch?v=lBNYpPmjH8M
-周杰倫〈青花瓷〉 https://www.youtube.com/watch?v=Z8Mqw0b9ADs
-五月天〈派對動物〉 https://www.youtube.com/watch?v=Fn7NLWHJw4s
-田馥甄〈小幸運〉 https://www.youtube.com/watch?v=_sQSXwdtxlY
-張學友〈吻別〉 https://www.youtube.com/watch?v=mIF-nn_y2_8
-伍佰〈挪威的森林〉 https://www.youtube.com/watch?v=gPpZJlE0Ca8
-周杰倫〈告白氣球〉 https://www.youtube.com/watch?v=bu7nU9Mhpyo
-孫燕姿〈天黑黑〉 https://www.youtube.com/watch?v=zi8z6RPYGV0
-王菲〈紅豆〉 https://www.youtube.com/watch?v=5wmfXve11rM
-蘇打綠〈小情歌〉 https://www.youtube.com/watch?v=in8NNzwFa-s
-茄子蛋〈浪子回頭〉 https://www.youtube.com/watch?v=x3bDhtuC5yk
-草東沒有派對〈大風吹〉 https://www.youtube.com/watch?v=HqmpIQ9l-uA
-光良〈童話〉 https://www.youtube.com/watch?v=bBcp_ljCBGU
-周杰倫〈稻香〉 https://www.youtube.com/watch?v=sHD_z90ZKV0
-告五人〈愛人錯過〉 https://www.youtube.com/watch?v=6D79CYTxvOM
-鄧紫棋〈泡沫〉 https://www.youtube.com/watch?v=mGeiABBB5f8
-蕭敬騰〈王妃〉 https://www.youtube.com/watch?v=qnDlH_S4Fak`;
+const SAMPLE=`# 一行一首：歌名　[發行年份]　YouTube 網址　從第幾秒開始播
+# 年份用來挑干擾選項：會優先出現年份接近、或同一位歌手的歌
+# 開始秒數已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）
+張學友〈吻別〉 [1993] https://www.youtube.com/watch?v=mIF-nn_y2_8 0:00
+伍佰〈挪威的森林〉 [1996] https://www.youtube.com/watch?v=gPpZJlE0Ca8 0:01
+張惠妹〈聽海〉 [1997] https://www.youtube.com/watch?v=mLk61pfiHQ0 0:01
+陶喆〈愛很簡單〉 [1997] https://www.youtube.com/watch?v=s1nlIafxVYQ 0:00
+王菲〈紅豆〉 [1998] https://www.youtube.com/watch?v=5wmfXve11rM 0:03
+孫燕姿〈天黑黑〉 [2000] https://www.youtube.com/watch?v=zi8z6RPYGV0 0:08
+梁靜茹〈勇氣〉 [2000] https://www.youtube.com/watch?v=nDchQNPuA0k 0:00
+梁靜茹〈分手快樂〉 [2002] https://www.youtube.com/watch?v=lBNYpPmjH8M 0:00
+周杰倫〈晴天〉 [2003] https://www.youtube.com/watch?v=DYptgVvkVLQ 0:00
+S.H.E〈Super Star〉 [2003] https://www.youtube.com/watch?v=gr5fNKK2FaA 0:00
+周杰倫〈七里香〉 [2004] https://www.youtube.com/watch?v=Bbp9ZaJD_eA 0:02
+五月天〈倔強〉 [2004] https://www.youtube.com/watch?v=R2s-H_crYkc 0:01
+林俊傑〈江南〉 [2004] https://www.youtube.com/watch?v=G97_rOdHcnY 0:00
+蔡依林〈倒帶〉 [2004] https://www.youtube.com/watch?v=cB7DIIG0ykk 0:00
+王力宏〈大城小愛〉 [2005] https://www.youtube.com/watch?v=J8mBwCEKRME 0:01
+光良〈童話〉 [2005] https://www.youtube.com/watch?v=bBcp_ljCBGU 0:00
+蘇打綠〈小情歌〉 [2006] https://www.youtube.com/watch?v=in8NNzwFa-s 0:07
+周杰倫〈青花瓷〉 [2007] https://www.youtube.com/watch?v=Z8Mqw0b9ADs 0:00
+蔡依林〈日不落〉 [2007] https://www.youtube.com/watch?v=1GA8z-Wliew 0:00
+周杰倫〈稻香〉 [2008] https://www.youtube.com/watch?v=sHD_z90ZKV0 0:00
+五月天〈突然好想你〉 [2008] https://www.youtube.com/watch?v=GtDRcXtDg-4 0:00
+蕭敬騰〈王妃〉 [2009] https://www.youtube.com/watch?v=qnDlH_S4Fak 0:01
+鄧紫棋〈泡沫〉 [2012] https://www.youtube.com/watch?v=mGeiABBB5f8 0:09
+田馥甄〈小幸運〉 [2015] https://www.youtube.com/watch?v=_sQSXwdtxlY 0:00
+周杰倫〈告白氣球〉 [2016] https://www.youtube.com/watch?v=bu7nU9Mhpyo 0:00
+五月天〈派對動物〉 [2016] https://www.youtube.com/watch?v=Fn7NLWHJw4s 0:00
+茄子蛋〈浪子回頭〉 [2016] https://www.youtube.com/watch?v=x3bDhtuC5yk 0:11
+草東沒有派對〈大風吹〉 [2016] https://www.youtube.com/watch?v=HqmpIQ9l-uA 0:05
+盧廣仲〈魚仔〉 [2017] https://www.youtube.com/watch?v=ybfWYpYhTQQ 0:00
+告五人〈愛人錯過〉 [2018] https://www.youtube.com/watch?v=6D79CYTxvOM 0:00`;
 
 const $=(s,r=document)=>r.querySelector(s);
 function h(tag,attrs={},...kids){const el=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(v==null||v===false)continue;if(k.startsWith("on"))el.addEventListener(k.slice(2),v);else if(k==="class")el.className=v;else if(k==="style")el.style.cssText=v;else el.setAttribute(k,v===true?"":v)}for(const k of kids.flat()){if(k==null||k===false)continue;el.append(k instanceof Node?k:document.createTextNode(String(k)))}return el}
 const app=$("#app");
 const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const KEYS=["A","B","C","D"];
+const KEYS=["A","B","C","D","E","F","G","H"];
 const BROKERS=[{url:"wss://public.cloud.shiftr.io",o:{username:"public",password:"public"}},{url:"wss://broker.emqx.io:8084/mqtt",o:{}},{url:"wss://test.mosquitto.org:8081",o:{}}];
 const TOPIC_BASE="partygames-rexwu36/song/";
 function mqttConnect(bk,opts){return new Promise((res,rej)=>{
@@ -170,19 +182,26 @@ function parseSongs(text){
       const t=(u.match(/[?&]t=(\d+)/)||[])[1];if(t)start=+t;
       line=line.replace(u," ");
     }
+    let year=null;const ym=line.match(/[\[［](\d{4})[\]］]/);if(ym){year=+ym[1];line=line.replace(ym[0]," ")}
     const tm=line.match(/\s(\d{1,2}):(\d{2})\s*$/)||line.match(/\s(\d{1,4})\s*$/);
     if(tm){start=tm.length===3?(+tm[1])*60+(+tm[2]):+tm[1];line=line.slice(0,tm.index)}
     const name=line.replace(/\s+/g," ").trim();
-    if(name)out.push({name,vid,start});
+    if(name)out.push({name,vid,start,year});
   }
   return out;
 }
 function buildQuestions(songs,random){
   const order=random?shuffle(songs):songs.slice();
-  const names=[...new Set(songs.map(s=>s.name))];
+  const uniq=[],seen=new Set();for(const x of songs)if(!seen.has(x.name)){seen.add(x.name);uniq.push(x)}
+  const N=Math.min(8,uniq.length);
+  const artist=n=>n.split(/[〈《「(（]/)[0].trim();
   return order.map(s=>{
-    const others=shuffle(names.filter(n=>n!==s.name)).slice(0,3);
-    const opts=shuffle([s.name,...others]);
+    const cand=uniq.filter(o=>o.name!==s.name).map(o=>{
+      let d=(s.year&&o.year)?Math.abs(s.year-o.year):6;
+      if(artist(o.name)===artist(s.name))d-=4;
+      return {n:o.name,d:d+Math.random()*1.5};
+    }).sort((a,b)=>a.d-b.d).slice(0,N-1).map(o=>o.n);
+    const opts=shuffle([s.name,...cand]);
     return {...s,opts,ans:opts.indexOf(s.name)};
   });
 }
@@ -230,13 +249,13 @@ function landing(err){
       h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
       h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v3")));
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v4")));
   (hashCode?name:code).focus();
 }
 
 /* ================= HOST SETUP ================= */
 function hostSetup(){
-  const saved=LS.get("sp:setup");
+  const saved=LS.get("sp:setup4");
   const ta=h("textarea",{id:"songs",spellcheck:"false"});ta.value=saved?.text??SAMPLE;
   const ans=h("select",{id:"ans"},[10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.ans||20)},s+" 秒")));
   const clip=h("select",{id:"clip"},[5,10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.clip||15)},"播 "+s+" 秒")));
@@ -253,15 +272,15 @@ function hostSetup(){
   app.replaceChildren(
     h("header",{class:"row",style:"justify-content:space-between"},h("div",{},brand(),h("h1",{},"準備歌單")),h("button",{class:"link",onclick:()=>landing()},"← 回到加入畫面")),
     h("div",{class:"card"},
-      h("label",{for:"songs"},"歌單（一行一首：歌名、YouTube 網址、從第幾秒開始播）",ta),
-      h("p",{class:"muted"},"選項會自動從歌單裡抽其他歌名當干擾選項。按「找 YouTube」打開搜尋，複製影片網址貼到該行後面即可；想從副歌開始播，就在最後加上時間，例如 1:05。"),
+      h("label",{for:"songs"},"歌單（一行一首：歌名、[發行年份]、YouTube 網址、從第幾秒開始播）",ta),
+      h("p",{class:"muted"},"每題 8 個選項，干擾選項會自動挑發行年份最接近、或同一位歌手的歌，所以記得寫上年份。按「找 YouTube」打開搜尋，複製影片網址貼到該行後面即可；想從副歌開始播，就在最後加上時間，例如 1:05。"),
       info,list,err,
       h("div",{class:"row"},
         h("label",{for:"clip",class:"grow"},"每首播放長度",clip),
         h("label",{for:"ans",class:"grow"},"作答時間",ans),
         h("label",{for:"rnd",class:"grow",style:"flex-direction:row;align-items:center;gap:8px"},rnd,"隨機順序")),
       h("button",{class:"go",onclick:()=>{const s=parseSongs(ta.value);if(s.length<2){err.textContent="至少要 2 首歌";return}
-        LS.set("sp:setup",{text:ta.value,ans:+ans.value,clip:+clip.value,rnd:rnd.checked});
+        LS.set("sp:setup4",{text:ta.value,ans:+ans.value,clip:+clip.value,rnd:rnd.checked});
         if(s.some(x=>x.vid))loadYT();
         openRoom(buildQuestions(s,rnd.checked),+ans.value,+clip.value)}},"開房間")));
 }
@@ -401,7 +420,7 @@ function openRoom(qs,limit,clip){
           h("div",{class:"timer",id:"timer"},G.limit),
           h("div",{class:"answered",id:"answered"},h("b",{},"0"),"人已作答"),
           h("div",{class:"row"},q.vid?h("button",{class:"ghost sm",onclick:()=>playClip(q,false)},"再播一次"):null,h("button",{class:"ghost sm",onclick:reveal},"直接公布"))),
-        h("div",{class:"opts"},q.opts.map((o,i)=>h("div",{class:"opt o"+i},h("span",{class:"k"},KEYS[i]),h("span",{},o)))));
+        h("div",{class:"opts"+(q.opts.length>4?" many":"")},q.opts.map((o,i)=>h("div",{class:"opt o"+i},h("span",{class:"k"},KEYS[i]),h("span",{},o)))));
       renderAnswered();return;
     }
     if(G.phase==="reveal"){
@@ -409,7 +428,7 @@ function openRoom(qs,limit,clip){
       app.replaceChildren(
         h("div",{class:"qtop"},h("span",{class:"qnum"},`第 ${G.qi+1} / ${G.qs.length} 首`),brand()),
         stageEl(q,false),
-        h("div",{class:"opts"},q.opts.map((o,i)=>h("div",{class:"opt o"+i+(i===q.ans?" right pop":" dim")},h("span",{class:"k"},i===q.ans?"✓":KEYS[i]),h("span",{},o),h("span",{class:"cnt"},counts[i]+" 人")))),
+        h("div",{class:"opts"+(q.opts.length>4?" many":"")},q.opts.map((o,i)=>h("div",{class:"opt o"+i+(i===q.ans?" right pop":" dim")},h("span",{class:"k"},i===q.ans?"✓":KEYS[i]),h("span",{},o),h("span",{class:"cnt"},counts[i]+" 人")))),
         h("div",{class:"row",style:"justify-content:flex-end"},
           q.vid?h("button",{class:"ghost",onclick:stopMusic},"停止音樂"):null,
           h("button",{class:"go",onclick:()=>{G.phase="board";render();pushAll()}},"看排行榜"),
@@ -432,7 +451,7 @@ function openRoom(qs,limit,clip){
         h("div",{class:"podium"},pod(r[1],"p2","🥈"),pod(r[0],"p1","🥇"),pod(r[2],"p3","🥉")),
         h("div",{class:"board"},r.slice(3).map((p,i)=>h("div",{class:"brow"},h("span",{class:"r"},"#"+(i+4)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)))),
         h("div",{class:"row",style:"justify-content:flex-end"},
-          h("button",{class:"ghost",onclick:()=>{for(const p of G.players.values()){p.score=0;p.ans=null;p.last=null}G.qs=buildQuestions(G.qs.map(({name,vid,start})=>({name,vid,start})),true);G.qi=-1;G.phase="lobby";render();pushAll()}},"同一群人再玩一次"),
+          h("button",{class:"ghost",onclick:()=>{for(const p of G.players.values()){p.score=0;p.ans=null;p.last=null}G.qs=buildQuestions(G.qs.map(({name,vid,start,year})=>({name,vid,start,year})),true);G.qi=-1;G.phase="lobby";render();pushAll()}},"同一群人再玩一次"),
           h("button",{class:"ghost",onclick:()=>{closeRoom();hostSetup()}},"換歌單、關閉房間")));
     }
   }
@@ -460,7 +479,7 @@ function startPlayer(code,name){
     try{cl=await mqttConnect(BROKERS[bi],{will:{topic:up,payload:JSON.stringify({t:"bye",pid:tok}),qos:1}})}
     catch(e){status("連不上連線伺服器","請確認手機有網路；連 Wi-Fi 的話可以改用行動網路再試");return}
     const askJoin=setInterval(()=>{if(!joined&&!dead)pub({t:"join",name})},2000);
-    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v3）")}},15000);
+    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v4）")}},15000);
     cl.on("message",(topic,buf)=>{
       if(dead)return;const s=buf.toString();
       if(topic===base+"hello"){
@@ -491,7 +510,7 @@ function startPlayer(code,name){
       app.replaceChildren(h("div",{class:"narrow",style:"display:flex;flex-direction:column;gap:12px"},
         h("div",{class:"me"},h("span",{class:"qnum"},`第 ${S.qi+1} / ${S.total} 首`),h("span",{class:"s"},S.score+" 分")),
         h("p",{style:"font-weight:900;text-align:center;font-size:1.2rem"},"🎵 仔細聽，這是哪首歌？"),
-        h("div",{class:"pad"},S.opts.map((o,i)=>h("button",{class:"opt o"+i,onclick:()=>{
+        h("div",{class:"pad"+(S.opts.length>4?" many":"")},S.opts.map((o,i)=>h("button",{class:"opt o"+i,onclick:()=>{
           app.querySelectorAll(".pad button").forEach(b=>b.disabled=true);
           pub({t:"ans",q:S.qi,c:i});
           if(navigator.vibrate)navigator.vibrate(30);
