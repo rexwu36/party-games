@@ -132,7 +132,7 @@ const PLAYLISTS=[
 "name": "台灣聽團",
 "tag": "zh",
 "mode": "intro",
-"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n陳綺貞〈旅行的意義〉 [2004] https://www.youtube.com/watch?v=tv95k0zqnaA 0:00\n張懸〈寶貝〉 [2006] https://www.youtube.com/watch?v=jSaVNAQ9OJs 0:00\n宇宙人〈一起去跑步〉 [2012] https://www.youtube.com/watch?v=m99Py_8NtZE 0:04\n康士坦的變化球〈美好的事可不可以發生在我身上〉 [2013] https://www.youtube.com/watch?v=n7xF4UYrkq8 0:13\n滅火器〈島嶼天光〉 [2014] https://www.youtube.com/watch?v=riNecvPcmTE 0:00\n老王樂隊〈我還年輕 我還年輕〉 [2015] https://www.youtube.com/watch?v=NbNPJr_0tqA 0:00\n落日飛車〈My Jinji〉 [2016] https://www.youtube.com/watch?v=5xwFCtDc0fI 0:00\ndeca joins〈海浪〉 [2016] https://www.youtube.com/watch?v=FonjL7DQAUQ 0:01\n草東沒有派對〈山海〉 [2016] https://www.youtube.com/watch?v=j2311FZWoFQ 0:13\n草東沒有派對〈爛泥〉 [2019] https://www.youtube.com/watch?v=2fQ5es-qLaY 0:00\n告五人〈披星戴月的想你〉 [2019] https://www.youtube.com/watch?v=VpwAq7hiij0 1:11\n美秀集團〈電火王〉 [2019] https://www.youtube.com/watch?v=BuuIbTF0_b0 0:02\n八三夭〈想見你想見你想見你〉 [2019] https://www.youtube.com/watch?v=4iRupuNet3Q 0:02\n告五人〈唯一〉 [2021] https://www.youtube.com/watch?v=vxucCfcMFCk 0:14\n茄子蛋〈愛情你比我想的閣較偉大〉 [2021] https://www.youtube.com/watch?v=0rp3pP2Xwhs 0:11"
+"text": "# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n# 開始時間已設在 MV 開頭聲音出現的地方（保留前奏、跳過空白）\n宇宙人〈一起去跑步〉 [2012] https://www.youtube.com/watch?v=m99Py_8NtZE 0:04\n康士坦的變化球〈美好的事可不可以發生在我身上〉 [2013] https://www.youtube.com/watch?v=n7xF4UYrkq8 0:13\n滅火器〈島嶼天光〉 [2014] https://www.youtube.com/watch?v=riNecvPcmTE 0:00\nHello Nico〈花〉 [2015] https://www.youtube.com/watch?v=BlblBvpVgjE 0:00\n老王樂隊〈我還年輕 我還年輕〉 [2015] https://www.youtube.com/watch?v=NbNPJr_0tqA 0:00\n好樂團〈我把我的青春給你〉 [2016] https://www.youtube.com/watch?v=9MMIB61e6sM 0:08\n落日飛車〈My Jinji〉 [2016] https://www.youtube.com/watch?v=5xwFCtDc0fI 0:00\ndeca joins〈海浪〉 [2016] https://www.youtube.com/watch?v=FonjL7DQAUQ 0:01\n草東沒有派對〈山海〉 [2016] https://www.youtube.com/watch?v=j2311FZWoFQ 0:13\n草東沒有派對〈爛泥〉 [2019] https://www.youtube.com/watch?v=2fQ5es-qLaY 0:00\n告五人〈披星戴月的想你〉 [2019] https://www.youtube.com/watch?v=VpwAq7hiij0 1:11\n美秀集團〈電火王〉 [2019] https://www.youtube.com/watch?v=BuuIbTF0_b0 0:02\n八三夭〈想見你想見你想見你〉 [2019] https://www.youtube.com/watch?v=4iRupuNet3Q 0:02\n告五人〈唯一〉 [2021] https://www.youtube.com/watch?v=vxucCfcMFCk 0:14\n茄子蛋〈愛情你比我想的閣較偉大〉 [2021] https://www.youtube.com/watch?v=0rp3pP2Xwhs 0:11"
 },
 {
 "name": "老歌金曲",
@@ -303,7 +303,7 @@ function landing(err){
       h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
       h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v7")));
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v8")));
   (hashCode?name:code).focus();
 }
 
@@ -542,7 +542,7 @@ function startPlayer(code,name){
     try{cl=await mqttConnect(BROKERS[bi],{will:{topic:up,payload:JSON.stringify({t:"bye",pid:tok}),qos:1}})}
     catch(e){status("連不上連線伺服器","請確認手機有網路；連 Wi-Fi 的話可以改用行動網路再試");return}
     const askJoin=setInterval(()=>{if(!joined&&!dead)pub({t:"join",name})},2000);
-    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v7）")}},15000);
+    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v8）")}},15000);
     cl.on("message",(topic,buf)=>{
       if(dead)return;const s=buf.toString();
       if(topic===base+"hello"){
