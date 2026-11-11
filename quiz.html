@@ -86,6 +86,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .me{display:flex;justify-content:space-between;font-weight:900;padding:8px 4px}
 .me .s{font-family:var(--f-num)}
 .banner{background:var(--d);color:var(--panel-ink);border-radius:10px;padding:8px 12px;font-weight:700;text-align:center}
+.note{background:var(--panel);color:var(--panel-ink);border-radius:14px;padding:14px 18px;font-weight:900;font-size:clamp(1.1rem,2.6vw,1.6rem);text-align:center}
 @media (max-width:640px){.lobby{grid-template-columns:1fr}.qr{justify-self:center}.opt{min-height:64px;padding:12px}.qtext{padding:20px 14px}}
 @media (prefers-reduced-motion:no-preference){.pop{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}}
 </style>
@@ -99,7 +100,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 "use strict";
 const PREFIX="qparty-zh-";
 const PRESETS={
- "年度大事（Sandy 版）": "2001 年，Sandy 出生的那年，哪一件「不是」這年發生的？\n*921 大地震\n納莉颱風把台北捷運淹成水族館\n美國 911 恐怖攻擊\n《流星花園》播出，F4 爆紅\n\n2002 年，Sandy 1 歲那年，哪一件「不是」這年發生的？\n*第一代 iPod 上市\n日韓世界盃\n歐元紙鈔開始流通\n台灣正式加入 WTO\n\n2003 年，Sandy 2 歲那年，哪一件「不是」這年發生的？\nSARS 爆發，和平醫院封院\n伊拉克戰爭開打\n周杰倫〈晴天〉發行\n*周杰倫專輯《八度空間》發行\n\n2004 年，Sandy 3 歲那年，哪一件「不是」這年發生的？\n雅典奧運，台灣拿下史上第一面金牌\n南亞大海嘯\nFacebook 在哈佛宿舍誕生\n*電影《頭文字D》上映\n\n2005 年，Sandy 4 歲那年，哪一件「不是」這年發生的？\n卡崔娜颶風重創紐奧良\nYouTube 成立\n*台北 101 開幕\n王建民洋基大聯盟初登板\n\n2006 年，Sandy 5 歲那年，哪一件「不是」這年發生的？\n世界盃決賽席丹頭槌\n冥王星被踢出九大行星\n*周杰倫電影《不能說的秘密》上映\n王建民單季 19 勝\n\n2007 年，Sandy 6 歲那年，哪一件「不是」這年發生的？\n《哈利波特》最終集出版\n台灣高鐵通車\n*Twitter 成立\n第一代 iPhone 發表\n\n2008 年，Sandy 7 歲那年，哪一件「不是」這年發生的？\n《海角七號》上映\n北京奧運\n雷曼兄弟倒閉，金融海嘯\n*比特幣誕生\n\n2009 年，Sandy 8 歲那年，哪一件「不是」這年發生的？\n麥可傑克森過世\n高雄世界運動會\n*歐巴馬當選美國總統\n《阿凡達》上映\n\n2010 年，Sandy 9 歲那年，哪一件「不是」這年發生的？\n台北國際花卉博覽會\n*威廉王子與凱特大婚\n第一代 iPad 上市\nInstagram 上線\n\n2011 年，Sandy 10 歲那年，哪一件「不是」這年發生的？\n*章魚哥保羅神準預測世界盃\n《那些年，我們一起追的女孩》上映\n311 東日本大地震\n賈伯斯過世\n\n2012 年，Sandy 11 歲那年，哪一件「不是」這年發生的？\n*雪梨奧運\n林來瘋席捲 NBA\n江南 Style 紅遍全球\n倫敦奧運\n\n2013 年，Sandy 12 歲那年，哪一件「不是」這年發生的？\n英國喬治小王子出生\n*馬雅預言的世界末日沒來\n教宗本篤十六世退位\n《冰雪奇緣》上映\n\n2014 年，Sandy 13 歲那年，哪一件「不是」這年發生的？\n世界盃德國 7:1 血洗巴西\n電影《星際效應》上映\n*《星際大戰：原力覺醒》上映\n冰桶挑戰洗版\n\n2015 年，Sandy 14 歲那年，哪一件「不是」這年發生的？\n電影《我的少女時代》上映\n網路吵翻「洋裝是藍黑還是白金」\n*PPAP 洗腦全世界\n美國同婚全面合法\n\n2016 年，Sandy 15 歲那年，哪一件「不是」這年發生的？\n川普第一次當選美國總統\n寶可夢 GO 全民抓寶\n*指尖陀螺爆紅\n英國脫歐公投\n\n2017 年，Sandy 16 歲那年，哪一件「不是」這年發生的？\nNintendo Switch 發售\n815 全台大停電\n*台灣同婚合法\n台北世大運\n\n2018 年，Sandy 17 歲那年，哪一件「不是」這年發生的？\n*《鬼滅之刃：無限列車篇》上映\n法國拿下世界盃冠軍\n衛生紙之亂，全聯被搬空\n哈利王子與梅根大婚\n\n2019 年，Sandy 18 歲那年，哪一件「不是」這年發生的？\n人類第一張黑洞照片\n巴黎聖母院大火\n*《魷魚遊戲》爆紅\n《復仇者聯盟：終局之戰》上映\n\n2020 年，Sandy 19 歲那年，哪一件「不是」這年發生的？\n《集合啦！動物森友會》發售\n東京奧運宣布延期\n新冠疫情，口罩實名制\n*威爾史密斯在奧斯卡賞人巴掌\n\n2021 年，Sandy 20 歲那年，哪一件「不是」這年發生的？\n長榮貨輪卡在蘇伊士運河\n東京奧運，麟洋配拿下羽球金牌\n鮭魚之亂，一堆人改名鮭魚\n*Taylor Swift 時代巡迴演唱會開跑\n\n2022 年，Sandy 21 歲那年，哪一件「不是」這年發生的？\n梅西終於拿下世界盃冠軍\nChatGPT 上線\n*黃仁勳來台掀起旋風\n英國伊莉莎白女王過世\n\n2023 年，Sandy 22 歲那年，哪一件「不是」這年發生的？\n*選出史上第一位美國籍教宗\n經典賽大谷三振楚特封王\n台灣蛋荒，雞蛋一顆難求\n「芭比海默」電影對決\n\n2024 年，Sandy 23 歲那年，哪一件「不是」這年發生的？\n台灣隊奪下世界 12 強冠軍\n*洛杉磯奧運\n大谷翔平完成 50 轟 50 盜\n巴黎奧運\n\n2025 年，Sandy 24 歲那年，哪一件「不是」這年發生的？\n全網洗版「吉卜力風」AI 大頭貼\nDeepSeek 一出，科技股集體腿軟\nTaylor Swift 宣布訂婚\n*電影《腦筋急轉彎2》上映\n\n2026 年，Sandy 25 歲那年，哪一件「不是」這年發生的？\n世界棒球經典賽\n*Nintendo Switch 2 發售\n米蘭冬奧\n美加墨世界盃，首次 48 隊",
+ "年度大事（Sandy 版）": "2001 年，Sandy 出生的那年，哪一件「不是」這年發生的？\n*921 大地震\n納莉颱風把台北捷運淹成水族館\n美國 911 恐怖攻擊\n《流星花園》播出，F4 爆紅\n解答：「921 大地震」其實是 1999 年\n\n2002 年，Sandy 1 歲那年，哪一件「不是」這年發生的？\n*第一代 iPod 上市\n日韓世界盃\n歐元紙鈔開始流通\n台灣正式加入 WTO\n解答：「第一代 iPod 上市」其實是 2001 年\n\n2003 年，Sandy 2 歲那年，哪一件「不是」這年發生的？\nSARS 爆發，和平醫院封院\n伊拉克戰爭開打\n周杰倫〈晴天〉發行\n*周杰倫專輯《八度空間》發行\n解答：「周杰倫專輯《八度空間》發行」其實是 2002 年\n\n2004 年，Sandy 3 歲那年，哪一件「不是」這年發生的？\n雅典奧運，台灣拿下史上第一面金牌\n南亞大海嘯\nFacebook 在哈佛宿舍誕生\n*電影《頭文字D》上映\n解答：「電影《頭文字D》上映」其實是 2005 年\n\n2005 年，Sandy 4 歲那年，哪一件「不是」這年發生的？\n卡崔娜颶風重創紐奧良\nYouTube 成立\n*台北 101 開幕\n王建民洋基大聯盟初登板\n解答：「台北 101 開幕」其實是 2004 年\n\n2006 年，Sandy 5 歲那年，哪一件「不是」這年發生的？\n世界盃決賽席丹頭槌\n冥王星被踢出九大行星\n*周杰倫電影《不能說的秘密》上映\n王建民單季 19 勝\n解答：「周杰倫電影《不能說的秘密》上映」其實是 2007 年\n\n2007 年，Sandy 6 歲那年，哪一件「不是」這年發生的？\n《哈利波特》最終集出版\n台灣高鐵通車\n*Twitter 成立\n第一代 iPhone 發表\n解答：「Twitter 成立」其實是 2006 年\n\n2008 年，Sandy 7 歲那年，哪一件「不是」這年發生的？\n《海角七號》上映\n北京奧運\n雷曼兄弟倒閉，金融海嘯\n*比特幣誕生\n解答：「比特幣誕生」其實是 2009 年\n\n2009 年，Sandy 8 歲那年，哪一件「不是」這年發生的？\n麥可傑克森過世\n高雄世界運動會\n*歐巴馬當選美國總統\n《阿凡達》上映\n解答：「歐巴馬當選美國總統」其實是 2008 年\n\n2010 年，Sandy 9 歲那年，哪一件「不是」這年發生的？\n台北國際花卉博覽會\n*威廉王子與凱特大婚\n第一代 iPad 上市\nInstagram 上線\n解答：「威廉王子與凱特大婚」其實是 2011 年\n\n2011 年，Sandy 10 歲那年，哪一件「不是」這年發生的？\n*章魚哥保羅神準預測世界盃\n《那些年，我們一起追的女孩》上映\n311 東日本大地震\n賈伯斯過世\n解答：「章魚哥保羅神準預測世界盃」其實是 2010 年\n\n2012 年，Sandy 11 歲那年，哪一件「不是」這年發生的？\n*雪梨奧運\n林來瘋席捲 NBA\n江南 Style 紅遍全球\n倫敦奧運\n解答：「雪梨奧運」其實是 2000 年\n\n2013 年，Sandy 12 歲那年，哪一件「不是」這年發生的？\n英國喬治小王子出生\n*馬雅預言的世界末日沒來\n教宗本篤十六世退位\n《冰雪奇緣》上映\n解答：「馬雅預言的世界末日沒來」其實是 2012 年\n\n2014 年，Sandy 13 歲那年，哪一件「不是」這年發生的？\n世界盃德國 7:1 血洗巴西\n電影《星際效應》上映\n*《星際大戰：原力覺醒》上映\n冰桶挑戰洗版\n解答：「《星際大戰：原力覺醒》上映」其實是 2015 年\n\n2015 年，Sandy 14 歲那年，哪一件「不是」這年發生的？\n電影《我的少女時代》上映\n網路吵翻「洋裝是藍黑還是白金」\n*PPAP 洗腦全世界\n美國同婚全面合法\n解答：「PPAP 洗腦全世界」其實是 2016 年\n\n2016 年，Sandy 15 歲那年，哪一件「不是」這年發生的？\n川普第一次當選美國總統\n寶可夢 GO 全民抓寶\n*指尖陀螺爆紅\n英國脫歐公投\n解答：「指尖陀螺爆紅」其實是 2017 年\n\n2017 年，Sandy 16 歲那年，哪一件「不是」這年發生的？\nNintendo Switch 發售\n815 全台大停電\n*台灣同婚合法\n台北世大運\n解答：「台灣同婚合法」其實是 2019 年\n\n2018 年，Sandy 17 歲那年，哪一件「不是」這年發生的？\n*《鬼滅之刃：無限列車篇》上映\n法國拿下世界盃冠軍\n衛生紙之亂，全聯被搬空\n哈利王子與梅根大婚\n解答：「《鬼滅之刃：無限列車篇》上映」其實是 2020 年\n\n2019 年，Sandy 18 歲那年，哪一件「不是」這年發生的？\n人類第一張黑洞照片\n巴黎聖母院大火\n*《魷魚遊戲》爆紅\n《復仇者聯盟：終局之戰》上映\n解答：「《魷魚遊戲》爆紅」其實是 2021 年\n\n2020 年，Sandy 19 歲那年，哪一件「不是」這年發生的？\n《集合啦！動物森友會》發售\n東京奧運宣布延期\n新冠疫情，口罩實名制\n*威爾史密斯在奧斯卡賞人巴掌\n解答：「威爾史密斯在奧斯卡賞人巴掌」其實是 2022 年\n\n2021 年，Sandy 20 歲那年，哪一件「不是」這年發生的？\n長榮貨輪卡在蘇伊士運河\n東京奧運，麟洋配拿下羽球金牌\n鮭魚之亂，一堆人改名鮭魚\n*Taylor Swift 時代巡迴演唱會開跑\n解答：「Taylor Swift 時代巡迴演唱會開跑」其實是 2023 年\n\n2022 年，Sandy 21 歲那年，哪一件「不是」這年發生的？\n梅西終於拿下世界盃冠軍\nChatGPT 上線\n*黃仁勳來台掀起旋風\n英國伊莉莎白女王過世\n解答：「黃仁勳來台掀起旋風」其實是 2024 年\n\n2023 年，Sandy 22 歲那年，哪一件「不是」這年發生的？\n*選出史上第一位美國籍教宗\n經典賽大谷三振楚特封王\n台灣蛋荒，雞蛋一顆難求\n「芭比海默」電影對決\n解答：「選出史上第一位美國籍教宗」其實是 2025 年\n\n2024 年，Sandy 23 歲那年，哪一件「不是」這年發生的？\n台灣隊奪下世界 12 強冠軍\n*洛杉磯奧運\n大谷翔平完成 50 轟 50 盜\n巴黎奧運\n解答：「洛杉磯奧運」其實是 2028 年才舉辦\n\n2025 年，Sandy 24 歲那年，哪一件「不是」這年發生的？\n全網洗版「吉卜力風」AI 大頭貼\nDeepSeek 一出，科技股集體腿軟\nTaylor Swift 宣布訂婚\n*電影《腦筋急轉彎2》上映\n解答：「電影《腦筋急轉彎2》上映」其實是 2024 年\n\n2026 年，Sandy 25 歲那年，哪一件「不是」這年發生的？\n世界棒球經典賽\n*Nintendo Switch 2 發售\n米蘭冬奧\n美加墨世界盃，首次 48 隊\n解答：「Nintendo Switch 2 發售」其實是 2025 年",
  "Emoji 猜歌名（進階）": "🎵 猜歌名：🌪️\n周杰倫〈東風破〉\n*周杰倫〈龍捲風〉\n吳青峰〈起風了〉\n草東沒有派對〈大風吹〉\n\n🎵 猜歌名：🌕🟰💓\n蘇打綠〈小情歌〉\n張宇〈月亮惹的禍〉\n*鄧麗君〈月亮代表我的心〉\n王菲〈我願意〉\n\n🎵 猜歌名：🔟🗓️\n劉若英〈後來〉\n五月天〈突然好想你〉\n林俊傑〈一千年以後〉\n*陳奕迅〈十年〉\n\n🎵 猜歌名：⏳⏳👀❌\n*陳奕迅〈好久不見〉\n五月天〈突然好想你〉\n陳奕迅〈十年〉\n郭靜〈下一個天亮〉\n\n🎵 猜歌名：🍷🗣️💔\n江蕙＆施文彬〈傷心酒店〉\n茄子蛋〈浪子回頭〉\n江蕙〈半醉半清醒〉\n*江蕙〈酒後的心聲〉\n\n🎵 猜歌名：🐦🌳☝️\n伍佰〈挪威的森林〉\n*伍佰〈樹枝孤鳥〉\n伍佰〈突然的自我〉\n草東沒有派對〈山海〉\n\n🎵 猜歌名：🏃‍♀️🏃‍♂️🌙\n鄧紫棋〈光年之外〉\n張宇〈月亮惹的禍〉\n告五人〈披星戴月的想你〉\n*五月天〈私奔到月球〉\n\n🎵 猜歌名：⭐🌙💭👉\nF4〈流星雨〉\n五月天〈私奔到月球〉\n周杰倫〈夜曲〉\n*告五人〈披星戴月的想你〉\n\n🎵 猜歌名：💡📏🚀\n*鄧紫棋〈光年之外〉\n林俊傑〈一千年以後〉\n齊秦〈外面的世界〉\nF4〈流星雨〉\n\n🎵 猜歌名：🪽🫥\n蔡依林〈舞孃〉\n張韶涵〈歐若拉〉\n周杰倫〈蝸牛〉\n*張韶涵〈隱形的翅膀〉\n\n🎵 猜歌名：🌌🟩✨❄️\n*張韶涵〈歐若拉〉\n鄧紫棋〈光年之外〉\nF4〈流星雨〉\n孫燕姿〈綠光〉\n\n🎵 猜歌名：🟢🔦\n田馥甄〈小幸運〉\n*孫燕姿〈綠光〉\n張韶涵〈歐若拉〉\n周杰倫〈晴天〉\n\n🎵 猜歌名：🎭\n*薛之謙〈演員〉\n林宥嘉〈說謊〉\n楊丞琳〈曖昧〉\n蔡依林〈大藝術家〉\n\n🎵 猜歌名：🤥\n*林宥嘉〈說謊〉\n楊丞琳〈曖昧〉\n王菲〈容易受傷的女人〉\n薛之謙〈演員〉\n\n🎵 猜歌名：🌫️💗❓\nS.H.E〈戀人未滿〉\nF.I.R.〈我們的愛〉\n*楊丞琳〈曖昧〉\n林宥嘉〈說謊〉\n\n🎵 猜歌名：💑🔋20%\n告五人〈愛人錯過〉\n*S.H.E〈戀人未滿〉\n胡夏〈那些年〉\n楊丞琳〈曖昧〉\n\n🎵 猜歌名：🏠🔙👵\n王傑〈一場遊戲一場夢〉\n*江蕙〈家後〉\n江蕙〈落雨聲〉\n王菲〈我願意〉\n\n🎵 猜歌名：🍏🌳🎡\n羅大佑〈童年〉\n齊秦〈外面的世界〉\n*小虎隊〈青蘋果樂園〉\n周杰倫〈稻香〉\n\n🎵 猜歌名：🧒📚🎈\n周杰倫〈稻香〉\n小虎隊〈青蘋果樂園〉\nS.H.E〈不想長大〉\n*羅大佑〈童年〉\n\n🎵 猜歌名：🙅‍♀️🧒➡️👩\n*S.H.E〈不想長大〉\n李榮浩〈年少有為〉\n老王樂隊〈我還年輕 我還年輕〉\n羅大佑〈童年〉\n\n🎵 猜歌名：👦🏻🏆\n盧廣仲〈刻在我心底的名字〉\nS.H.E〈不想長大〉\n老王樂隊〈我還年輕 我還年輕〉\n*李榮浩〈年少有為〉\n\n🎵 猜歌名：🌙🎼\n周杰倫〈東風破〉\n周杰倫〈半島鐵盒〉\n*周杰倫〈夜曲〉\n周杰倫〈晴天〉\n\n🎵 猜歌名：🏝️📦\n周杰倫〈夜曲〉\n周杰倫〈七里香〉\n周杰倫〈簡單愛〉\n*周杰倫〈半島鐵盒〉\n\n🎵 猜歌名：🌼🍵\n周杰倫〈東風破〉\n周杰倫〈煙花易冷〉\n*周杰倫〈菊花台〉\n周杰倫〈青花瓷〉\n\n🎵 猜歌名：🎆🥶\n周杰倫〈菊花台〉\nF4〈流星雨〉\n*周杰倫〈煙花易冷〉\n周杰倫〈不能說的秘密〉\n\n🎵 猜歌名：👂👩‍🍼🗣️\n周杰倫〈蝸牛〉\n*周杰倫〈聽媽媽的話〉\n周杰倫〈簡單愛〉\n周杰倫〈稻香〉\n\n🎵 猜歌名：🤫🔐\n*周杰倫〈不能說的秘密〉\n林宥嘉〈說謊〉\n周杰倫〈半島鐵盒〉\n楊丞琳〈曖昧〉\n\n🎵 猜歌名：🧪🪄💘\n*告五人〈給你一瓶魔法藥水〉\n告五人〈愛人錯過〉\n告五人〈披星戴月的想你〉\n告五人〈唯一〉\n\n🎵 猜歌名：🏃‍♂️🏃‍♀️👟\n美秀集團〈電火王〉\n*宇宙人〈一起去跑步〉\n滅火器〈島嶼天光〉\n老王樂隊〈我還年輕 我還年輕〉\n\n🎵 猜歌名：🏝️🌅\n滅火器〈晚安台灣〉\n*滅火器〈島嶼天光〉\n草東沒有派對〈山海〉\ndeca joins〈海浪〉\n\n🎵 猜歌名：⚡🔥👑\n*美秀集團〈電火王〉\n蕭敬騰〈王妃〉\n滅火器〈島嶼天光〉\n謝金燕〈姐姐〉\n\n🎵 猜歌名：🌧️🔊\n孫燕姿〈天黑黑〉\n張惠妹〈聽海〉\n楊丞琳〈雨愛〉\n*江蕙〈落雨聲〉\n\n🎵 猜歌名：🧭🌍🚪\n張雨生〈我的未來不是夢〉\n鄧紫棋〈光年之外〉\n羅大佑〈童年〉\n*齊秦〈外面的世界〉\n\n🎵 猜歌名：🔮🚫💤\n*張雨生〈我的未來不是夢〉\n齊秦〈外面的世界〉\n老王樂隊〈我還年輕 我還年輕〉\n范瑋琪〈最初的夢想〉\n\n🎵 猜歌名：👻🫀🔒\n周華健〈花心〉\n張學友〈一千個傷心的理由〉\n任賢齊〈心太軟〉\n*李宗盛〈鬼迷心竅〉\n\n🎵 猜歌名：💔✖️1000\n林俊傑〈一千年以後〉\n張學友〈吻別〉\n*張學友〈一千個傷心的理由〉\n李宗盛〈鬼迷心竅〉\n\n🎵 猜歌名：🫀🍮\n周華健〈花心〉\n李宗盛〈鬼迷心竅〉\n*任賢齊〈心太軟〉\n任賢齊〈對面的女孩看過來〉\n\n🎵 猜歌名：💧🧠🗑️\n茄子蛋〈浪子回頭〉\n張惠妹〈聽海〉\n張信哲〈愛如潮水〉\n*劉德華〈忘情水〉"
 };
 
@@ -152,12 +153,15 @@ function parseQuiz(text){
   const blocks=text.replace(/\r/g,"").split(/\n\s*\n/).map(b=>b.split("\n").map(s=>s.trim()).filter(Boolean)).filter(b=>b.length);
   const qs=[],errs=[];
   blocks.forEach((b,i)=>{
-    const [q,...opts]=b;
+    const [q,...rest]=b;
+    const noteLine=rest.find(o=>/^(解答|說明)[:：]/.test(o));
+    const note=noteLine?noteLine.replace(/^(解答|說明)[:：]\s*/,""):"";
+    const opts=rest.filter(o=>o!==noteLine);
     const ci=opts.findIndex(o=>o.startsWith("*"));
     const clean=opts.map(o=>o.replace(/^\*\s*/,""));
     if(clean.length<2||clean.length>4) errs.push(`第 ${i+1} 題需要 2～4 個選項（目前 ${clean.length} 個）`);
     else if(ci<0) errs.push(`第 ${i+1} 題沒有標出正確答案（在正確選項前面加 *）`);
-    else qs.push({q,opts:clean,ans:ci});
+    else qs.push({q,opts:clean,ans:ci,note});
   });
   return {qs,errs};
 }
@@ -174,7 +178,7 @@ function hostSetup(){
     h("div",{class:"card"},
       h("div",{class:"row"},h("span",{style:"font-weight:700"},"載入題庫："),
         Object.keys(PRESETS).map(k=>h("button",{class:"ghost",style:"min-height:40px;padding:6px 12px",onclick:()=>{ta.value=PRESETS[k];upd()}},k))),
-      h("label",{for:"quiz"},"題目（每題之間空一行；第一行是題目，下面 2～4 行是選項，正確答案前面加 *）",ta),
+      h("label",{for:"quiz"},"題目（每題之間空一行；第一行是題目，下面 2～4 行是選項，正確答案前面加 *；想在公布答案時補充說明，可以再加一行「解答：…」）",ta),
       info,err,
       h("div",{class:"row"},h("label",{for:"time",class:"grow",style:"flex-direction:row;align-items:center;gap:10px"},"每題作答時間",time),
         h("button",{class:"go grow",onclick:()=>{const {qs,errs}=parseQuiz(ta.value);if(errs.length||!qs.length){err.textContent=errs[0]||"請至少輸入一題";return}
@@ -216,7 +220,7 @@ function openRoom(qs,limit){
     const q=G.qs[G.qi];
     const base={t:"state",phase:G.phase,qi:G.qi,total:G.qs.length,score:p.score,rank,count:r.length,name:p.name};
     if(G.phase==="question") return {...base,opts:q.opts,q:q.q,remain:Math.max(0,G.deadline-Date.now()),answered:p.ans!=null};
-    if(G.phase==="reveal"||G.phase==="board") return {...base,last:p.last,correct:q.opts[q.ans]};
+    if(G.phase==="reveal"||G.phase==="board") return {...base,last:p.last,correct:q.opts[q.ans],note:q.note||""};
     return base;
   }
   function pushAll(){for(const p of G.players.values())send(p,stateFor(p))}
@@ -309,6 +313,7 @@ function openRoom(qs,limit){
         h("div",{class:"qtop"},h("span",{class:"qnum"},`第 ${G.qi+1} / ${G.qs.length} 題`),brand()),
         h("div",{class:"qtext"},q.q),
         h("div",{class:"opts"},q.opts.map((o,i)=>h("div",{class:"opt o"+i+(i===q.ans?" right pop":" dim")},h("span",{class:"k"},i===q.ans?"✓":KEYS[i]),h("span",{},o),h("span",{class:"cnt"},counts[i]+" 人")))),
+        q.note?h("div",{class:"note pop"},"💡 ",q.note):null,
         h("div",{class:"row",style:"justify-content:flex-end"},
           h("button",{class:"go",onclick:()=>{G.phase="board";render();pushAll()}},"看排行榜"),
           isLast?null:h("button",{class:"ghost",onclick:nextQ},"跳過排行，下一題"))
@@ -402,8 +407,9 @@ function startPlayer(code,name){
     }
     if(S.phase==="reveal"||S.phase==="board"){
       const L=S.last||{ok:false,none:true};
-      if(L.ok)return status("答對了！",h("div",{},h("div",{class:"pts"},"+"+L.g),`目前第 ${S.rank} 名`),"good");
-      return status(L.none?"時間到":"答錯了",h("div",{},"正確答案：",h("b",{},S.correct),h("div",{style:"margin-top:6px"},`目前第 ${S.rank} 名`)),"bad");
+      const nt=S.note?h("div",{style:"margin-top:8px;font-weight:700"},"💡 ",S.note):null;
+      if(L.ok)return status("答對了！",h("div",{},h("div",{class:"pts"},"+"+L.g),`目前第 ${S.rank} 名`,nt),"good");
+      return status(L.none?"時間到":"答錯了",h("div",{},"正確答案：",h("b",{},S.correct),nt,h("div",{style:"margin-top:6px"},`目前第 ${S.rank} 名`)),"bad");
     }
     if(S.phase==="final")return status(S.rank<=3?["🥇","🥈","🥉"][S.rank-1]+" 第 "+S.rank+" 名！":"第 "+S.rank+" 名",`總分 ${S.score} 分，共 ${S.count} 人參加`,S.rank<=3?"good":"");
   }

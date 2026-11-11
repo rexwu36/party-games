@@ -81,10 +81,11 @@ EMOJI = [
 
 rng = random.Random(20261111)
 
-def block(q, right, wrong):
+def block(q, right, wrong, note=""):
     opts = [right] + wrong
     rng.shuffle(opts)
-    return q + "\n" + "\n".join(("*" if o == right else "") + o for o in opts)
+    out = q + "\n" + "\n".join(("*" if o == right else "") + o for o in opts)
+    return out + (f"\n解答：{note}" if note else "")
 
 # year quiz: uniqueness check
 seen = {}
@@ -96,7 +97,8 @@ for y, (trues, (decoy, dy)) in YEARS.items():
 year_blocks = []
 for i, (y, (trues, (decoy, dy))) in enumerate(sorted(YEARS.items())):
     who = "Sandy 出生的那年" if i == 0 else f"Sandy {i} 歲那年"
-    year_blocks.append(block(f"{y} 年，{who}，哪一件「不是」這年發生的？", decoy, trues))
+    when = f"{dy} 年才舉辦" if dy > 2026 else f"{dy} 年"
+    year_blocks.append(block(f"{y} 年，{who}，哪一件「不是」這年發生的？", decoy, trues, f"「{decoy}」其實是 {when}"))
 emoji_blocks = [block(f"🎵 猜歌名：{e}", a, w) for e, a, w in EMOJI]
 for _, a, w in EMOJI:
     assert a not in w and len(set(w)) == 3, a
