@@ -14,9 +14,9 @@ classic = json.loads((ROOT / "tools" / "classic.json").read_text(encoding="utf-8
 
 def ts(x): return f"{int(x)//60}:{int(x)%60:02d}"
 
-def line(name, year, vid, start, chorus):
+def line(name, year, vid, start, chorus, tag="副"):
     s = f"{name} [{year}] https://www.youtube.com/watch?v={vid} {ts(start)}"
-    if chorus is not None: s += f" 副{ts(chorus)}"
+    if chorus is not None: s += f" {tag}{ts(chorus)}"
     return s
 
 HEAD = ("# 一行一首：歌名　[發行年份]　YouTube 網址　開始時間　副歌時間\n"
@@ -40,8 +40,8 @@ for n, y in csongs:
     d = data.get(n)
     if not d or not d[0]:
         missing.append(n); continue
-    crow.append(line(n, y, d[0], d[1] or 0, d[2]))
-lists.append({"name": ct, "tag": ctag, "mode": "chorus", "text": HEAD + "\n".join(crow)})
+    crow.append(line(n, y, d[0], d[1] or 0, d[2], "難"))
+lists.append({"name": ct, "tag": ctag, "mode": "hard", "text": HEAD + "\n".join(crow)})
 
 js = "const PLAYLISTS=" + json.dumps(lists, ensure_ascii=False, indent=0) + ";\n"
 js += "const SAMPLE=PLAYLISTS[0].text;\n"
