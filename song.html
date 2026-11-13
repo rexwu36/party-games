@@ -314,7 +314,7 @@ function hostSetup(){
   const ta=h("textarea",{id:"songs",spellcheck:"false"});ta.value=saved?.text||PLAYLISTS[pi].text;
   const pl=h("select",{id:"plist"},PLAYLISTS.map((p,i)=>h("option",{value:i,selected:i===pi},p.name+"（"+parsedList(p).length+" 首）")));
   const modeNote=h("p",{class:"muted"});
-  const ans=h("select",{id:"ans"},[10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.ans||20)},s+" 秒")));
+  const ans=h("select",{id:"ans"},[10,15,20,30,45,60].map(s=>h("option",{value:s,selected:s===(saved?.ans||20)},s===60?"1 分鐘":s+" 秒")));
   const clip=h("select",{id:"clip"},[0,5,10,15,20].map(s=>h("option",{value:s,selected:s===(saved?.play??0)},s?"只播 "+s+" 秒":"播到作答時間結束")));
   const rnd=h("input",{type:"checkbox",id:"rnd",checked:saved?.rnd??true,style:"width:auto"});
   const list=h("ul",{class:"songlist"});const err=h("p",{class:"err"});const info=h("p",{class:"muted"});

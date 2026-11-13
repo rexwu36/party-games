@@ -143,7 +143,7 @@ function landing(err){
         msg,
         h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v3")
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v6")
     ));
   (hashCode?name:code).focus();
 }
@@ -169,7 +169,7 @@ function hostSetup(){
   const saved=LS.get("qp:quiz2");
   const ta=h("textarea",{id:"quiz",spellcheck:"false"});
   ta.value=saved?.text??PRESETS[Object.keys(PRESETS)[0]];
-  const time=h("select",{id:"time"},[10,15,20,30].map(s=>h("option",{value:s,selected:s===(saved?.time||20)},s+" 秒")));
+  const time=h("select",{id:"time"},[10,15,20,30,45,60].map(s=>h("option",{value:s,selected:s===(saved?.time2||60)},s===60?"1 分鐘":s+" 秒")));
   const info=h("p",{class:"muted"});const err=h("p",{class:"err"});
   const upd=()=>{const {qs,errs}=parseQuiz(ta.value);info.textContent=`共 ${qs.length} 題`;err.textContent=errs.slice(0,3).join("；")};
   ta.addEventListener("input",upd);upd();
@@ -182,7 +182,7 @@ function hostSetup(){
       info,err,
       h("div",{class:"row"},h("label",{for:"time",class:"grow",style:"flex-direction:row;align-items:center;gap:10px"},"每題作答時間",time),
         h("button",{class:"go grow",onclick:()=>{const {qs,errs}=parseQuiz(ta.value);if(errs.length||!qs.length){err.textContent=errs[0]||"請至少輸入一題";return}
-          LS.set("qp:quiz2",{text:ta.value,time:+time.value});openRoom(qs,+time.value)}},"開房間"))
+          LS.set("qp:quiz2",{text:ta.value,time2:+time.value});openRoom(qs,+time.value)}},"開房間"))
     ));
 }
 
