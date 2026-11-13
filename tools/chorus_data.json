@@ -1,33 +1,153 @@
 {
- "_note": "third value = hard-mode start: least-replayed 15 s in the middle 25-75% of the MV (YouTube most-replayed heatmap), checked to have audio",
- "周華健〈朋友〉": ["6lbPgfKK7m4", 0, 209],
- "張信哲〈愛如潮水〉": ["LPl420bwG8c", 0, 158],
- "任賢齊〈對面的女孩看過來〉": ["6aosRlnxg9I", 0, 78],
- "張宇〈月亮惹的禍〉": ["1YJ8wSH6HBU", 0, 194],
- "動力火車〈當〉": ["XQl8NJceqjY", 0, 150],
- "五月天〈擁抱〉": ["lvDa3r1pNuE", 0, 191],
- "張震嶽〈愛我別走〉": ["zPeMFCDPgKE", 0, 169],
- "張韶涵〈歐若拉〉": ["dmwJaG-R1iM", 0, 179],
- "孫燕姿〈綠光〉": ["pztQtHvZkRc", 0, 84],
- "王力宏〈唯一〉": ["P7Qv4AV_StM", 0, 196],
- "陳奕迅〈愛情轉移〉": ["RIq7Tz9nYD8", 0, 195],
- "信樂團〈死了都要愛〉": ["p-ehKBc9p9k", 0, 119],
- "孫燕姿〈遇見〉": ["m4nu_F_9dWU", 0, 106],
- "蔡依林〈說愛你〉": ["_Y_mlCbfn_Y", 0, 169],
- "范瑋琪〈最初的夢想〉": ["wGAmgmZg-48", 0, 121],
- "陳奕迅〈十年〉": ["JM9rx_hN1Ko", 0, 152],
- "伍佰〈突然的自我〉": ["CT-P8-D8CC0", 0, 163],
- "梁靜茹〈寧夏〉": ["MmtVl9CssYE", 0, 286],
- "五月天〈知足〉": ["_o0oeyCtoFA", 0, 203],
- "梁靜茹〈可惜不是你〉": ["k_l7FVsqUyM", 0, 216],
- "S.H.E〈不想長大〉": ["KV17QLB2BJs", 0, 200],
- "林俊傑〈一千年以後〉": ["m0z1XfphYzU", 0, 129],
- "蔡依林〈舞孃〉": ["0EN3MnGEBXk", 0, 64],
- "陳奕迅〈好久不見〉": ["UsFQ9kbpQhw", 0, 131],
- "S.H.E〈中國話〉": ["jGauF0PuDFE", 0, 149],
- "林俊傑〈小酒窩〉": ["h-woMj_Vt0A", 0, 177],
- "林宥嘉〈說謊〉": ["ftfJRzW0MPo", 0, 114],
- "田馥甄〈你就不要想起我〉": ["GsKbnsUN2RE", 0, 235],
- "張棟樑〈當你孤單你會想起誰〉": ["FIQstRobWBg", 0, 104],
- "林俊傑〈修煉愛情〉": ["LWV-f6dMN3Q", 0, 266]
+ "_note": "third value = hard-mode start: least-replayed 15 s in the middle 25-75% of the MV (YouTube most-replayed heatmap), checked to have audio; clamped to length-75 s so a 60 s answer time never runs past the end",
+ "周華健〈朋友〉": [
+  "6lbPgfKK7m4",
+  0,
+  209
+ ],
+ "張信哲〈愛如潮水〉": [
+  "LPl420bwG8c",
+  0,
+  158
+ ],
+ "任賢齊〈對面的女孩看過來〉": [
+  "6aosRlnxg9I",
+  0,
+  78
+ ],
+ "張宇〈月亮惹的禍〉": [
+  "1YJ8wSH6HBU",
+  0,
+  184
+ ],
+ "動力火車〈當〉": [
+  "XQl8NJceqjY",
+  0,
+  150
+ ],
+ "五月天〈擁抱〉": [
+  "lvDa3r1pNuE",
+  0,
+  182
+ ],
+ "張震嶽〈愛我別走〉": [
+  "zPeMFCDPgKE",
+  0,
+  169
+ ],
+ "張韶涵〈歐若拉〉": [
+  "dmwJaG-R1iM",
+  0,
+  179
+ ],
+ "孫燕姿〈綠光〉": [
+  "pztQtHvZkRc",
+  0,
+  84
+ ],
+ "王力宏〈唯一〉": [
+  "P7Qv4AV_StM",
+  0,
+  186
+ ],
+ "陳奕迅〈愛情轉移〉": [
+  "RIq7Tz9nYD8",
+  0,
+  185
+ ],
+ "信樂團〈死了都要愛〉": [
+  "p-ehKBc9p9k",
+  0,
+  119
+ ],
+ "孫燕姿〈遇見〉": [
+  "m4nu_F_9dWU",
+  0,
+  106
+ ],
+ "蔡依林〈說愛你〉": [
+  "_Y_mlCbfn_Y",
+  0,
+  153
+ ],
+ "范瑋琪〈最初的夢想〉": [
+  "wGAmgmZg-48",
+  0,
+  121
+ ],
+ "陳奕迅〈十年〉": [
+  "JM9rx_hN1Ko",
+  0,
+  129
+ ],
+ "伍佰〈突然的自我〉": [
+  "CT-P8-D8CC0",
+  0,
+  142
+ ],
+ "梁靜茹〈寧夏〉": [
+  "MmtVl9CssYE",
+  0,
+  286
+ ],
+ "五月天〈知足〉": [
+  "_o0oeyCtoFA",
+  0,
+  196
+ ],
+ "梁靜茹〈可惜不是你〉": [
+  "k_l7FVsqUyM",
+  0,
+  216
+ ],
+ "S.H.E〈不想長大〉": [
+  "KV17QLB2BJs",
+  0,
+  194
+ ],
+ "林俊傑〈一千年以後〉": [
+  "m0z1XfphYzU",
+  0,
+  129
+ ],
+ "蔡依林〈舞孃〉": [
+  "0EN3MnGEBXk",
+  0,
+  64
+ ],
+ "陳奕迅〈好久不見〉": [
+  "UsFQ9kbpQhw",
+  0,
+  131
+ ],
+ "S.H.E〈中國話〉": [
+  "jGauF0PuDFE",
+  0,
+  126
+ ],
+ "林俊傑〈小酒窩〉": [
+  "h-woMj_Vt0A",
+  0,
+  164
+ ],
+ "林宥嘉〈說謊〉": [
+  "ftfJRzW0MPo",
+  0,
+  114
+ ],
+ "田馥甄〈你就不要想起我〉": [
+  "GsKbnsUN2RE",
+  0,
+  235
+ ],
+ "張棟樑〈當你孤單你會想起誰〉": [
+  "FIQstRobWBg",
+  0,
+  104
+ ],
+ "林俊傑〈修煉愛情〉": [
+  "LWV-f6dMN3Q",
+  0,
+  266
+ ]
 }
