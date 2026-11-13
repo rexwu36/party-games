@@ -111,12 +111,13 @@ const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return 
 const KEYS=["A","B","C","D"];
 const BROKERS=[{url:"wss://public.cloud.shiftr.io",o:{username:"public",password:"public"}},{url:"wss://broker.emqx.io:8084/mqtt",o:{}},{url:"wss://test.mosquitto.org:8081",o:{}}];
 const TOPIC_BASE="partygames-rexwu36/quiz/";
-function mqttConnect(bk,opts){return new Promise((res,rej)=>{
-  const c=mqtt.connect(bk.url,{connectTimeout:6000,reconnectPeriod:2000,keepalive:20,clean:true,...bk.o,...opts});
-  const t=setTimeout(()=>{try{c.end(true)}catch(e){}rej(new Error("timeout"))},7000);
+function mqttConnect(bk,opts,ms){ms=ms||6000;return new Promise((res,rej)=>{
+  const c=mqtt.connect(bk.url,{connectTimeout:ms,reconnectPeriod:2000,keepalive:20,clean:true,...bk.o,...opts});
+  const t=setTimeout(()=>{try{c.end(true)}catch(e){}rej(new Error("timeout"))},ms+1000);
   c.once("connect",()=>{clearTimeout(t);res(c)});
 })}
 
+function netBanner(on){let b=document.getElementById("netb");if(!b){b=document.createElement("div");b.id="netb";b.style.cssText="position:fixed;top:0;left:0;right:0;z-index:99;background:#c0392b;color:#fff;text-align:center;padding:6px;font-weight:700";b.textContent="主持人電腦網路中斷，正在自動重新連線⋯（不用重新整理）";document.body.append(b)}b.style.display=on?"block":"none"}
 let wakeLock=null;async function keepAwake(){try{wakeLock=await navigator.wakeLock?.request("screen")}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&wakeLock)keepAwake()});
 function baseURL(){return location.href.split("#")[0]}
@@ -143,7 +144,7 @@ function landing(err){
         msg,
         h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v6")
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v7")
     ));
   (hashCode?name:code).focus();
 }
@@ -198,7 +199,8 @@ function openRoom(qs,limit){
       try{
         const cl=await mqttConnect(BROKERS[b],{will:{topic:base+"hello",payload:"",retain:true,qos:1}});
         G.code=code;G.cl=cl;G.base=base;
-        cl.on("connect",()=>cl.publish(base+"hello",JSON.stringify({at:Date.now()}),{retain:true,qos:1}));
+        cl.on("connect",()=>{netBanner(false);if(G.offAt){if(G.phase==="question")G.deadline+=Date.now()-G.offAt;G.offAt=0}cl.publish(base+"hello",JSON.stringify({at:Date.now()}),{retain:true,qos:1});pushAll()});
+        cl.on("offline",()=>{netBanner(true);if(!G.offAt)G.offAt=Date.now()});
         cl.on("message",(topic,buf)=>{let d;try{d=JSON.parse(buf.toString())}catch(e){return}onData(d)});
         cl.subscribe(base+"up",{qos:1});
         cl.publish(base+"hello",JSON.stringify({at:Date.now()}),{retain:true,qos:1});
@@ -240,13 +242,15 @@ function openRoom(qs,limit){
       p.seen=Date.now();send(p,stateFor(p));if(G.phase==="lobby")render();return;
     }
     if(!p)return;
-    if(d.t==="ping"){p.seen=Date.now();return}
+    if(d.t==="ping"){p.seen=Date.now();
+      if(d.ph!==undefined&&(d.ph!==G.phase||d.qi!==G.qi||(G.phase==="question"&&(p.ans!=null)!==(d.a===1))))send(p,stateFor(p));
+      return}
     if(d.t==="bye"){p.seen=0;if(G.phase==="lobby")render();return}
     if(d.t==="ans"){
       p.seen=Date.now();
       if(G.phase!=="question"||d.q!==G.qi||p.ans!=null)return;
       const c=d.c|0;if(c<0||c>=G.qs[G.qi].opts.length)return;
-      p.ans={c,ms:Date.now()-G.start};send(p,stateFor(p));renderAnswered();
+      const hm=Date.now()-G.start,cm=+d.ms;p.ans={c,ms:(cm>=0&&cm<hm)?cm:hm};send(p,stateFor(p));renderAnswered();
       if([...G.players.values()].filter(online).every(x=>x.ans!=null))reveal();
     }
   }
@@ -258,7 +262,7 @@ function openRoom(qs,limit){
     G.phase="question";G.start=Date.now();G.deadline=G.start+G.limit*1000;
     render();pushAll();
     clearInterval(G.tick);
-    G.tick=setInterval(()=>{const left=Math.ceil((G.deadline-Date.now())/1000);const t=$("#timer");if(t)t.textContent=Math.max(0,left);if(Date.now()>=G.deadline)reveal()},200);
+    G.tick=setInterval(()=>{const left=Math.ceil((G.deadline-Date.now())/1000);const t=$("#timer");if(t)t.textContent=Math.max(0,left);if(Date.now()>=G.deadline&&!G.offAt)reveal()},200);
   }
   function reveal(){
     if(G.phase!=="question")return;
@@ -354,35 +358,42 @@ function startPlayer(code,name){
   LS.set("qp:player",{name,tok,code});
   history.replaceState(null,"","#"+code);
   keepAwake();
-  let cl=null,S=null,joined=false,dead=false,helloSeen=false,qStart=0;
+  let cl=null,S=null,joined=false,dead=false,helloSeen=false,qStart=0,sentQ=-1,sentAt=0,pend=null,qRecv=0;
   const bi=+code[0]-1;
   if(!BROKERS[bi]){landing("房間碼不正確，請再確認一次");return}
   const base=TOPIC_BASE+code+"/",up=base+"up";
   const pub=m=>{try{cl&&cl.publish(up,JSON.stringify({...m,pid:tok}),{qos:1})}catch(e){}};
+  // an answer the host has not confirmed yet is sent again (the host ignores duplicates)
+  const resend=()=>{if(pend&&S&&S.phase==="question"&&S.qi===pend.q&&!S.answered){sentAt=Date.now();pub({t:"ans",...pend})}};
   status("連線中⋯","");
   (async()=>{
-    try{cl=await mqttConnect(BROKERS[bi],{will:{topic:up,payload:JSON.stringify({t:"bye",pid:tok}),qos:1}})}
-    catch(e){status("連不上連線伺服器","請確認手機有網路；連 Wi-Fi 的話可以改用行動網路再試");return}
+    for(let k=0;k<3&&!cl;k++){
+      try{cl=await mqttConnect(BROKERS[bi],{will:{topic:up,payload:JSON.stringify({t:"bye",pid:tok}),qos:1}},12000)}
+      catch(e){if(k<2)status("網路有點慢，再試一次⋯","請稍等，不用重新整理")}
+    }
+    if(!cl){status("連不上連線伺服器","請確認手機有網路；連 Wi-Fi 的話可以改用行動網路，然後重新整理");return}
     const askJoin=setInterval(()=>{if(!joined&&!dead)pub({t:"join",name})},2000);
-    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間（v3）")}},15000);
+    const noRoom=setTimeout(()=>{if(!joined){dead=true;clearInterval(askJoin);cl.end(true);landing("找不到房間 "+code+"。請確認房間碼，並請主持人重新整理頁面、重開房間")}},30000);
     cl.on("message",(topic,buf)=>{
       if(dead)return;const s=buf.toString();
       if(topic===base+"hello"){
         if(!s){if(joined)status("主持人暫時離線","等主持人回來⋯");return}
-        helloSeen=true;pub({t:"join",name});return;
+        helloSeen=true;pub({t:"join",name});resend();return;
       }
       let d;try{d=JSON.parse(s)}catch(e){return}onMsg(d);
     });
     cl.on("offline",()=>{if(!dead&&joined)status("連線中斷，重新連線中⋯","請保持這個頁面開著")});
     cl.subscribe([base+"hello",base+"p/"+tok],{qos:1},()=>pub({t:"join",name}));
-    setInterval(()=>{if(!dead&&cl.connected)pub({t:"ping"})},8000);
+    cl.on("connect",()=>{if(!dead){pub({t:"join",name});resend()}});
+    document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||dead)return;if(cl.connected)pub({t:"join",name});else try{cl.reconnect()}catch(e){}});
+    setInterval(()=>{if(dead||!cl.connected)return;pub({t:"ping",ph:S?S.phase:"",qi:S?S.qi:-2,a:S&&S.answered?1:0});if(Date.now()-sentAt>3000)resend()},5000);
   })();
 
   function onMsg(d){
     if(!d||typeof d!=="object")return;
     if(d.t==="err"){dead=true;try{cl.end(true)}catch(e){}landing(d.m);return}
     if(d.t!=="state")return;
-    joined=true;const prev=S;S=d;
+    joined=true;if(d.phase==="question"&&(!S||S.phase!=="question"||S.qi!==d.qi))qRecv=Date.now();const prev=S;S=d;
     if(S.phase==="question"&&(!prev||prev.phase!=="question"||prev.qi!==S.qi))qStart=Date.now()-((S.total&&0)||0);
     draw();
   }
@@ -394,13 +405,13 @@ function startPlayer(code,name){
   function draw(){
     if(S.phase==="lobby")return status("你已經加入了！","看大螢幕，等主持人開始");
     if(S.phase==="question"){
-      if(S.answered)return status("已送出答案","等其他人作答⋯");
+      if(S.answered||sentQ===S.qi)return status("已送出答案","等其他人作答⋯");
       app.replaceChildren(h("div",{class:"narrow",style:"display:flex;flex-direction:column;gap:12px"},
         h("div",{class:"me"},h("span",{class:"qnum"},`第 ${S.qi+1} / ${S.total} 題`),h("span",{class:"s"},S.score+" 分")),
         h("p",{style:"font-weight:900;text-align:center"},S.q),
         h("div",{class:"pad"},S.opts.map((o,i)=>h("button",{class:"opt o"+i,onclick:(e)=>{
           app.querySelectorAll(".pad button").forEach(b=>b.disabled=true);
-          pub({t:"ans",q:S.qi,c:i});
+          pend={q:S.qi,c:i,ms:Date.now()-qRecv};pub({t:"ans",...pend});sentQ=S.qi;sentAt=Date.now();
           if(navigator.vibrate)navigator.vibrate(30);
         }},h("span",{class:"k"},KEYS[i]),h("span",{},o))))));
       return;
