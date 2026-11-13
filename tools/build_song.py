@@ -6,10 +6,13 @@ The first playlist (華語經典 30) is read from the CLASSIC block below.
 import json, re, sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from playlists_src import PLAYLISTS, EXTRA_BANK, CHORUS_LIST
+from new_lists import NEW_LISTS, MOVIE_BANK
+EXTRA_BANK = dict(EXTRA_BANK, movie=MOVIE_BANK)
 
 ROOT = pathlib.Path(__file__).parent.parent
 data = json.loads((ROOT / "tools" / "data.json").read_text(encoding="utf-8"))
 data.update(json.loads((ROOT / "tools" / "chorus_data.json").read_text(encoding="utf-8")))
+data.update(json.loads((ROOT / "tools" / "data_new.json").read_text(encoding="utf-8")))
 classic = json.loads((ROOT / "tools" / "classic.json").read_text(encoding="utf-8"))  # [[name, year, id, start], ...]
 
 def ts(x): return f"{int(x)//60}:{int(x)%60:02d}"
@@ -42,6 +45,15 @@ for n, y in csongs:
         missing.append(n); continue
     crow.append(line(n, y, d[0], d[1] or 0, d[2], "難"))
 lists.append({"name": ct, "tag": ctag, "mode": "hard", "text": HEAD + "\n".join(crow)})
+# 30-song lists added later go after the hard list so saved list indexes stay valid.
+for title, tag, songs in NEW_LISTS:
+    rows = []
+    for n, y, _q in songs:
+        d = data.get(n)
+        if not d or not d[0]:
+            missing.append(n); continue
+        rows.append(line(n, y, d[0], d[1] or 0, None))
+    lists.append({"name": title, "tag": tag, "mode": "intro", "text": HEAD + "\n".join(rows)})
 
 js = "const PLAYLISTS=" + json.dumps(lists, ensure_ascii=False, indent=0) + ";\n"
 js += "const SAMPLE=PLAYLISTS[0].text;\n"
