@@ -1,7 +1,8 @@
 // Elegant birthday decorations: a few slow gold sparkles in the background, and a soft gold confetti fall
 // when the final podium or a "答對" screen appears. Purely visual; it never touches the game state.
 (()=>{
-  const COLORS=["#f0dcae","#d6b46e","#fbf7f0","#e7b9b0","#c9a35a"];
+  const COLORS=["#f0dcae","#d6b46e","#fbf7f0","#f2b8c6","#d9577a","#b9a3e0","#7fd1c7"];
+  const BALLOONS=[["#f6c9d3","#d9708c"],["#f5e3bd","#c9a35a"],["#e9ddf7","#9c84d6"],["#fbe3d6","#d59a7a"],["#f6c9d3","#d9708c"],["#f5e3bd","#c9a35a"]];
   const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
   function sparkles(){
     const box=document.createElement("div");box.className="pg-sparkles";box.setAttribute("aria-hidden","true");
@@ -11,6 +12,14 @@
       s.style.setProperty("--s",(2+Math.random()*3).toFixed(1)+"px");
       s.style.setProperty("--dur",(5+Math.random()*5).toFixed(1)+"s");s.style.setProperty("--del",(-Math.random()*8).toFixed(1)+"s");
       box.appendChild(s)}
+    document.body.prepend(box);
+  }
+  function balloons(){
+    const box=document.createElement("div");box.className="pg-balloons";box.setAttribute("aria-hidden","true");
+    [3,8,13,87,92,97].forEach((x,i)=>{const b=document.createElement("span");b.className="pg-balloon";
+      b.style.left=x+"%";b.style.setProperty("--bc",BALLOONS[i][0]);b.style.setProperty("--bc2",BALLOONS[i][1]);
+      b.style.setProperty("--dur",(14+i*1.9)+"s");b.style.setProperty("--del",(-i*2.6)+"s");
+      b.style.scale=String(0.8+(i%3)*0.14);box.appendChild(b)});
     document.body.prepend(box);
   }
   let last=0;
@@ -33,6 +42,6 @@
       if(p&&!seen.has(p)){seen.add(p);confetti(p.classList.contains("podium")?110:40)}
     }).observe(document.body,{childList:true,subtree:true});
   }
-  const go=()=>{sparkles();watch()};
+  const go=()=>{sparkles();balloons();watch()};
   document.readyState==="loading"?document.addEventListener("DOMContentLoaded",go):go();
 })();

@@ -1,9 +1,9 @@
-/* Elegant birthday theme shared by index / quiz / song: midnight + champagne gold + ivory, serif headings.
+/* Birthday theme between playful and elegant shared by index / quiz / song: midnight + champagne gold + ivory, serif headings.
    Loaded after each page's own <style>, so it only re-skins; class names and layout stay as the pages define them. */
 :root{
   --bg:#15121c; --bg2:#231b2c; --panel:#fbf7f0; --panel-ink:#2a2230; --ink:#f7f1e8; --muted:#cbbfae;
-  --a:#b84f69; --b:#2d7a74; --c:#6b4a8c; --d:#b07a2c; --e:#3b5c99; --f:#943f68; --g:#57794a; --h:#85604a;
-  --good:#3f8a5e; --bad:#b4434c; --gold:#d6b46e; --gold2:#f0dcae; --line:rgba(214,180,110,.45);
+  --a:#d9577a; --b:#249a8f; --c:#7d55c7; --d:#d0892a; --e:#3f6fc4; --f:#bf4785; --g:#5f9a48; --h:#a06a4c;
+  --good:#3f9a68; --bad:#c94a55; --blush:#f2b8c6; --gold:#d6b46e; --gold2:#f0dcae; --line:rgba(214,180,110,.45);
   --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
   --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --f-num:"Playfair Display","Noto Serif TC",Georgia,serif;
@@ -87,3 +87,41 @@ button.link{color:var(--muted);letter-spacing:.06em}
   @keyframes pg-fall{to{transform:translate(var(--dx,0),110vh) rotate(var(--rot,540deg))}}
 }
 @media (prefers-reduced-motion:reduce){.pg-confetti{display:none}}
+
+/* ---- festive layer: warmer plum night, soft bunting, rounded corners, balloons ---- */
+body{background:
+    radial-gradient(ellipse 70% 45% at 50% -8%,rgba(242,184,198,.22),transparent 70%),
+    radial-gradient(ellipse 50% 40% at 100% 100%,rgba(214,180,110,.16),transparent 70%),
+    linear-gradient(180deg,#2c1733,#1a1020) fixed;
+  padding-top:max(58px,calc(env(safe-area-inset-top) + 42px))}
+body::after{content:"";position:fixed;left:0;right:0;top:0;height:46px;z-index:0;pointer-events:none;opacity:.92;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='46' viewBox='0 0 200 46'%3E%3Cpath d='M0 5 Q50 14 100 5 T200 5' fill='none' stroke='%23d6b46e' stroke-width='1.2'/%3E%3Cpath d='M10 7 L22 34 L34 10Z' fill='%23f2b8c6'/%3E%3Cpath d='M44 10 L56 38 L68 11Z' fill='%23d6b46e'/%3E%3Cpath d='M78 10 L90 37 L102 7Z' fill='%23fbf7f0'/%3E%3Cpath d='M112 7 L124 34 L136 10Z' fill='%23d9577a'/%3E%3Cpath d='M146 10 L158 38 L170 11Z' fill='%23f0dcae'/%3E%3Cpath d='M178 10 L190 37 L200 6Z' fill='%23b9a3e0'/%3E%3C/svg%3E") repeat-x 0 0/200px 46px}
+main>h1,main>div>h1,.qtop h1{background-image:linear-gradient(180deg,#fbe9d2,#e0b36a)}
+.brand::before{content:"🎂";width:auto;height:auto;background:none}
+.card,.qtext,.stage{border-radius:14px}.card::before{border-radius:10px}
+input,textarea,select{border-radius:10px}
+button{border-radius:12px}
+button.go{background:linear-gradient(180deg,#f3a3b6,#d9577a);color:#fff}
+button.go:hover{background:linear-gradient(180deg,#f6b1c2,#e0627f)}
+.qr{border-radius:12px;transform:rotate(-1.5deg)}
+.chip{border-radius:99px;background:rgba(242,184,198,.1)}
+.opt{border-radius:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2),0 5px 0 rgba(0,0,0,.22)}
+.opt .k{background:rgba(255,255,255,.18)}
+.brow{border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.board{gap:8px}
+.pod{border-radius:14px 14px 0 0}
+.p3{background:linear-gradient(180deg,#f8d0da,#e08aa0)}
+.status{border-radius:16px}
+.timer{background:rgba(242,184,198,.12)}
+.me{border:1px solid var(--line);border-radius:99px;padding:8px 18px}
+.cover{background:radial-gradient(circle,rgba(240,220,174,.5) 0 1.5px,transparent 2px) 0 0/36px 36px,radial-gradient(ellipse at 50% 30%,#4a2a4e,#1d1222)}
+.pg-balloons{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.pg-balloon{position:absolute;bottom:-40px;width:58px;height:70px;border-radius:50% 50% 48% 52%/55% 55% 45% 45%;opacity:.8;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.7) 0 5px,transparent 13px),linear-gradient(160deg,var(--bc),var(--bc2))}
+.pg-balloon::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:90px;background:rgba(240,220,174,.5)}
+@media (max-width:899px){.pg-balloons{display:none}}
+@media (prefers-reduced-motion:no-preference){
+  .pg-balloon{animation:pg-float var(--dur,16s) ease-in-out infinite;animation-delay:var(--del,0s)}
+  @keyframes pg-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-58vh) rotate(3deg)}}
+}
+body::before{inset:50px 10px 10px}
