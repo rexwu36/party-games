@@ -90,9 +90,9 @@ button:disabled{opacity:.4;cursor:not-allowed}
 @media (max-width:640px){.lobby{grid-template-columns:1fr}.qr{justify-self:center}.opt{min-height:64px;padding:12px}.qtext{padding:20px 14px}}
 @media (prefers-reduced-motion:no-preference){.pop{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}}
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@500;700;900&family=Fredoka:wght@600;700&display=swap">
-<link rel="stylesheet" href="party.css?v=1">
-<script src="party.js?v=1" defer></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Playfair+Display:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="party.css?v=2">
+<script src="party.js?v=2" defer></script>
 </head>
 <body>
 <main id="app"></main>
@@ -147,7 +147,7 @@ function landing(err){
         msg,
         h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v8")
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v9")
     ));
   (hashCode?name:code).focus();
 }

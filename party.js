@@ -1,15 +1,16 @@
-// Birthday-party decorations: side balloons on big screens, and a confetti burst when the final podium
-// or a "答對" screen appears. Purely visual; it never touches the game state.
+// Elegant birthday decorations: a few slow gold sparkles in the background, and a soft gold confetti fall
+// when the final podium or a "答對" screen appears. Purely visual; it never touches the game state.
 (()=>{
-  const COLORS=["#ff4f7b","#ffd23f","#12b5a6","#8b4dff","#ff8a1f","#2f7cf6","#2ee6d6"];
+  const COLORS=["#f0dcae","#d6b46e","#fbf7f0","#e7b9b0","#c9a35a"];
   const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
-  function balloons(){
-    const box=document.createElement("div");box.className="pg-balloons";box.setAttribute("aria-hidden","true");
-    const spots=[2,7,12,88,93,97];
-    spots.forEach((x,i)=>{const b=document.createElement("span");b.className="pg-balloon";
-      b.style.left=x+"%";b.style.setProperty("--bc",COLORS[i%COLORS.length]);
-      b.style.setProperty("--dur",(12+i*1.7)+"s");b.style.setProperty("--del",(-i*2.3)+"s");
-      b.style.transform="scale("+(0.8+(i%3)*0.15)+")";box.appendChild(b)});
+  function sparkles(){
+    const box=document.createElement("div");box.className="pg-sparkles";box.setAttribute("aria-hidden","true");
+    const n=innerWidth<700?10:22;
+    for(let i=0;i<n;i++){const s=document.createElement("i");
+      s.style.left=Math.random()*100+"%";s.style.top=Math.random()*100+"%";
+      s.style.setProperty("--s",(2+Math.random()*3).toFixed(1)+"px");
+      s.style.setProperty("--dur",(5+Math.random()*5).toFixed(1)+"s");s.style.setProperty("--del",(-Math.random()*8).toFixed(1)+"s");
+      box.appendChild(s)}
     document.body.prepend(box);
   }
   let last=0;
@@ -18,20 +19,20 @@
     const box=document.createElement("div");box.className="pg-confetti";box.setAttribute("aria-hidden","true");
     for(let i=0;i<n;i++){const c=document.createElement("i");
       c.style.left=Math.random()*100+"%";c.style.background=COLORS[i%COLORS.length];
-      if(i%3===0)c.style.borderRadius="50%";
-      c.style.setProperty("--dx",(Math.random()*160-80)+"px");c.style.setProperty("--rot",(360+Math.random()*900)+"deg");
-      c.style.setProperty("--dur",(2.2+Math.random()*1.8)+"s");c.style.setProperty("--del",(Math.random()*.6)+"s");
+      if(i%4===0){c.style.width=c.style.height="7px";c.style.borderRadius="50%"}
+      c.style.setProperty("--dx",(Math.random()*120-60)+"px");c.style.setProperty("--rot",(240+Math.random()*600)+"deg");
+      c.style.setProperty("--dur",(3+Math.random()*2.5)+"s");c.style.setProperty("--del",(Math.random()*.8)+"s");
       box.appendChild(c)}
-    document.body.appendChild(box);setTimeout(()=>box.remove(),5000);
+    document.body.appendChild(box);setTimeout(()=>box.remove(),7000);
   }
   window.partyConfetti=confetti;
   function watch(){
     const seen=new WeakSet();
     new MutationObserver(()=>{
       const p=document.querySelector(".podium,.status.good");
-      if(p&&!seen.has(p)){seen.add(p);confetti(p.classList.contains("podium")?140:60)}
+      if(p&&!seen.has(p)){seen.add(p);confetti(p.classList.contains("podium")?110:40)}
     }).observe(document.body,{childList:true,subtree:true});
   }
-  const go=()=>{balloons();watch()};
+  const go=()=>{sparkles();watch()};
   document.readyState==="loading"?document.addEventListener("DOMContentLoaded",go):go();
 })();
