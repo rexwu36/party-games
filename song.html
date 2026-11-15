@@ -105,6 +105,9 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .note{background:var(--d);color:var(--panel-ink);border-radius:10px;padding:8px 12px;font-weight:700}
 @media (max-width:640px){.opts.many{grid-template-columns:1fr 1fr}.lobby{grid-template-columns:1fr}.qr{justify-self:center}.opt{min-height:60px;padding:12px}}
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@500;700;900&family=Fredoka:wght@600;700&display=swap">
+<link rel="stylesheet" href="party.css?v=1">
+<script src="party.js?v=1" defer></script>
 </head>
 <body>
 <main id="app"></main>
@@ -346,7 +349,7 @@ function landing(err){
       h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
       h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v14")));
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v15")));
   (hashCode?name:code).focus();
 }
 

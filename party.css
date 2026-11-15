@@ -1,0 +1,95 @@
+/* Birthday-party theme shared by index / quiz / song. Loaded after each page's own <style>, so it only re-skins:
+   class names and layout stay as the pages define them. */
+:root{
+  --bg:#2a0b3d; --bg2:#4a1463; --panel:#fff8ee; --panel-ink:#2a0b3d; --ink:#fff; --muted:#f2c9ef;
+  --a:#ff4f7b; --b:#12b5a6; --c:#8b4dff; --d:#ff8a1f; --e:#2f7cf6; --f:#e0369a; --g:#3fa33a; --h:#b0603a;
+  --good:#22b864; --bad:#e8434b; --sun:#ffd23f;
+  --f-display:"Chiron GoRound TC","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-num:"Fredoka","Chiron GoRound TC",ui-rounded,system-ui,sans-serif;
+  --lift:0 6px 0 rgba(0,0,0,.28);
+}
+body{
+  font-family:var(--f-display);
+  /* confetti dots on a plum-to-magenta night sky */
+  background:
+    radial-gradient(circle,#ffd23f 0 3px,transparent 3.5px) 0 0/140px 140px,
+    radial-gradient(circle,#ff4f7b 0 2.5px,transparent 3px) 47px 83px/160px 160px,
+    radial-gradient(circle,#2ee6d6 0 2.5px,transparent 3px) 101px 29px/180px 180px,
+    radial-gradient(circle,#b98cff 0 2px,transparent 2.5px) 23px 121px/120px 120px,
+    radial-gradient(ellipse at 50% -10%,#8a1f7a 0,#4a1463 35%,#2a0b3d 75%) fixed;
+  background-attachment:fixed;
+  padding-top:max(58px,calc(env(safe-area-inset-top) + 42px));
+}
+/* bunting garland along the top of the screen */
+body::before{
+  content:"";position:fixed;left:0;right:0;top:0;height:48px;z-index:0;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='48' viewBox='0 0 240 48'%3E%3Cpath d='M0 6 Q60 16 120 6 T240 6' fill='none' stroke='%23fff8ee' stroke-width='2'/%3E%3Cpath d='M8 8 L22 38 L36 11Z' fill='%23ff4f7b'/%3E%3Cpath d='M48 12 L62 42 L76 13Z' fill='%23ffd23f'/%3E%3Cpath d='M88 11 L102 40 L116 8Z' fill='%2312b5a6'/%3E%3Cpath d='M128 8 L142 38 L156 11Z' fill='%238b4dff'/%3E%3Cpath d='M168 12 L182 42 L196 13Z' fill='%23ff8a1f'/%3E%3Cpath d='M208 11 L222 40 L236 8Z' fill='%232f7cf6'/%3E%3C/svg%3E") repeat-x 0 0/240px 48px;
+  filter:drop-shadow(0 3px 0 rgba(0,0,0,.25));
+}
+main{position:relative;z-index:1}
+h1,h2,h3{font-weight:900;letter-spacing:.02em}
+main>h1,main>div>h1,.qtop h1{color:var(--sun);text-shadow:0 3px 0 #b8326e}
+.card h1,.card h2{color:var(--panel-ink);text-shadow:none}
+.brand{color:#fff;font-size:1.05rem;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:2px dashed rgba(255,255,255,.35);border-radius:99px;padding:4px 14px;align-self:flex-start}
+.brand::before{content:"🎂"}
+.brand b{color:var(--sun)}
+.card{background:var(--panel);border-radius:22px;box-shadow:var(--lift),0 18px 40px rgba(0,0,0,.25);border:3px solid #fff;position:relative}
+.card .muted{color:#7a5a7e}
+input,textarea,select{background:#fff;border:2px solid #f0d6e6;border-radius:14px}
+input:focus,textarea:focus,select:focus{border-color:var(--a);outline:none;box-shadow:0 0 0 4px rgba(255,79,123,.2)}
+input.code{font-family:var(--f-num);font-weight:700;color:var(--a)}
+button{border-radius:16px;background:var(--panel-ink);box-shadow:var(--lift);transition:transform .08s,box-shadow .08s}
+button:not(:disabled):active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.28)}
+button.go{background:linear-gradient(180deg,#ff6a8f,#ff3d6e);color:#fff}
+button.ghost{box-shadow:none}
+button.link{box-shadow:none;color:var(--muted)}
+.card button.link{color:#7a5a7e}
+:focus-visible{outline-color:var(--sun)}
+/* room code like a party ticket */
+.bigcode{font-family:var(--f-num);font-weight:700;color:var(--sun);text-shadow:0 5px 0 #b8326e}
+.qr{border-radius:18px;box-shadow:var(--lift);transform:rotate(-2deg)}
+.chip{background:#fff8ee;color:var(--panel-ink);border:0;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.chip:nth-child(6n+1){background:#ffd6e1}.chip:nth-child(6n+2){background:#fff1b8}.chip:nth-child(6n+3){background:#c9f4ee}
+.chip:nth-child(6n+4){background:#e3d6ff}.chip:nth-child(6n+5){background:#ffe0c4}.chip:nth-child(6n){background:#d3e5ff}
+.qnum{font-family:var(--f-num);color:var(--muted);font-weight:700}
+.qtext{border-radius:24px;box-shadow:var(--lift);border:3px solid #fff}
+.timer{font-family:var(--f-num);font-weight:700;background:var(--sun);color:var(--panel-ink);box-shadow:0 5px 0 #c98a00,0 0 0 6px rgba(255,210,63,.25)}
+.answered{font-family:var(--f-num);font-weight:700}
+.stage{border-radius:22px;border:4px solid #fff8ee;box-shadow:var(--lift)}
+.cover{background:radial-gradient(circle,#ffd23f 0 2px,transparent 2.5px) 0 0/40px 40px,linear-gradient(135deg,#ff4f7b,#8b4dff)}
+.eq i{background:#fff8ee}.eq i:nth-child(2n){background:var(--sun)}
+/* answer tiles look like candy buttons */
+.opt{border-radius:20px;box-shadow:0 6px 0 rgba(0,0,0,.3);text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.opt .k{font-family:var(--f-num);font-weight:700;background:rgba(255,255,255,.28);border-radius:50%;text-shadow:none}
+.opt.right{outline:6px solid var(--sun);outline-offset:-6px}
+.opt .cnt{font-family:var(--f-num);font-weight:700}
+.brow{background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.18);border-radius:16px}
+.brow .r,.brow .s{font-family:var(--f-num);font-weight:700}
+.pod{border-radius:20px 20px 0 0;box-shadow:inset 0 -10px 0 rgba(0,0,0,.15)}
+.pod .s{font-family:var(--f-num);font-weight:700}
+.p1{background:linear-gradient(180deg,#ffe066,#ffb703);color:var(--panel-ink)}
+.p2{background:linear-gradient(180deg,#5fe0d2,#12a597)}.p3{background:linear-gradient(180deg,#ff8aa8,#ff4f7b)}
+.status{border-radius:22px}
+.status.good{background:linear-gradient(180deg,#34d27c,#1a9e55);box-shadow:var(--lift)}
+.status.bad{background:linear-gradient(180deg,#ff6b73,#d8323b);box-shadow:var(--lift)}
+.pts{font-family:var(--f-num);font-weight:700}
+.me{background:rgba(255,255,255,.1);border-radius:99px;padding:8px 18px}
+.me .s{font-family:var(--f-num);color:var(--sun)}
+.note,.banner{border-radius:16px;box-shadow:var(--lift)}
+/* balloons and confetti added by party.js */
+.pg-balloons{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.pg-balloon{position:absolute;bottom:-40px;width:64px;height:78px;border-radius:50% 50% 48% 52%/55% 55% 45% 45%;opacity:.85;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.65) 0 6px,transparent 14px),var(--bc)}
+.pg-balloon::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:90px;background:rgba(255,255,255,.4);transform:translateX(-50%)}
+.pg-balloon::before{content:"";position:absolute;left:50%;top:96%;border:6px solid transparent;border-bottom-color:var(--bc);transform:translateX(-50%) rotate(180deg)}
+.pg-confetti{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+.pg-confetti i{position:absolute;top:-20px;width:10px;height:16px;border-radius:2px}
+@media (max-width:899px){.pg-balloons{display:none}}
+@media (prefers-reduced-motion:no-preference){
+  .pg-balloon{animation:pg-float var(--dur,14s) ease-in-out infinite;animation-delay:var(--del,0s)}
+  @keyframes pg-float{0%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-62vh) rotate(4deg)}100%{transform:translateY(0) rotate(-4deg)}}
+  .pg-confetti i{animation:pg-fall var(--dur,3s) cubic-bezier(.3,.6,.6,1) forwards;animation-delay:var(--del,0s)}
+  @keyframes pg-fall{to{transform:translate(var(--dx,0),110vh) rotate(var(--rot,720deg))}}
+  .bigcode{animation:pg-bob 2.4s ease-in-out infinite}@keyframes pg-bob{50%{transform:translateY(-6px)}}
+}
+@media (prefers-reduced-motion:reduce){.pg-confetti{display:none}.pg-balloon{bottom:auto;top:30vh}}
