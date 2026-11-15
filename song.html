@@ -106,7 +106,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 @media (max-width:640px){.opts.many{grid-template-columns:1fr 1fr}.lobby{grid-template-columns:1fr}.qr{justify-self:center}.opt{min-height:60px;padding:12px}}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Playfair+Display:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="party.css?v=3">
+<link rel="stylesheet" href="party.css?v=4">
 <script src="party.js?v=3" defer></script>
 </head>
 <body>
@@ -313,13 +313,14 @@ function loadYT(){
   ytReady=new Promise(res=>{
     window.onYouTubeIframeAPIReady=()=>{
       YTP=new YT.Player("yt",{width:"100%",height:"100%",playerVars:{playsinline:1,controls:0,disablekb:1,rel:0,modestbranding:1},
-        events:{onReady:()=>res(YTP),onError:e=>{window.dispatchEvent(new CustomEvent("yterror",{detail:e.data}))}}});
+        events:{onReady:()=>res(YTP),onError:e=>{window.dispatchEvent(new CustomEvent("yterror",{detail:e.data}));try{window.opener&&window.opener.dispatchEvent(new window.opener.CustomEvent("yterror",{detail:e.data}))}catch(_){}}}});
     };
     const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";s.onerror=()=>res(null);document.head.append(s);
     setTimeout(()=>res(YTP),12000);
   });
   return ytReady;
 }
+function getYTP(){return YTP}
 let stageRef=null;
 function placePlayer(){
   const park=$("#yt-park");
@@ -331,6 +332,32 @@ function mountPlayer(stage,covered){stageRef=stage;$("#yt-cover").hidden=!covere
 function parkPlayer(){stageRef=null;placePlayer()}
 window.addEventListener("resize",placePlayer);
 setInterval(placePlayer,500);
+
+
+/* ---------- projector window ----------
+   The host can open a second window (song.html#show) for the projector. The host window then becomes a control
+   console, and every screen view plus the YouTube player live in the projector window. Without it, one window shows both. */
+let SHOW=null;
+function showOpen(){try{return !!(SHOW&&!SHOW.closed&&SHOW.SHOW_READY)}catch(e){return false}}
+function PW(){return showOpen()?SHOW:window}
+function toggleFS(doc){doc=doc||document;try{if(doc.fullscreenElement)doc.exitFullscreen();else doc.documentElement.requestFullscreen()}catch(e){}}
+function openShow(){if(SHOW&&!SHOW.closed){SHOW.focus();return}
+  SHOW=window.open(baseURL()+"#show","partyshow","popup,width=1280,height=720");
+  if(!SHOW)alert("瀏覽器擋住了新視窗：請在網址列右邊允許這個網站開「彈出式視窗」，再按一次。")}
+function fsButton(){if($("#fsb"))return;document.body.append(h("button",{id:"fsb",class:"fsb",onclick:()=>toggleFS(),title:"全螢幕（F）"},"⛶ 全螢幕"))}
+function showInit(){
+  document.body.classList.add("show");document.title="投影畫面";
+  const ready=()=>{try{window.opener&&window.opener.onShowReady&&window.opener.onShowReady()}catch(e){}};
+  const ov=h("div",{class:"show-ov",onclick:()=>{toggleFS();ov.remove();ready()}},
+    h("div",{class:"card"},brand(),h("h1",{},"投影畫面"),h("p",{},"把這個視窗拖到投影機或電視上，然後點一下這裡進入全螢幕。"),h("p",{class:"muted"},"之後雙擊畫面或按 F 可以切換全螢幕；遊戲從主持人視窗操作。")));
+  app.replaceChildren(h("p",{class:"muted",style:"text-align:center;margin-top:30vh;font-size:1.4rem"},"等待主持人⋯"));
+  document.body.append(ov);
+  window.SHOW_READY=true;
+  document.addEventListener("dblclick",()=>toggleFS());
+  document.addEventListener("keydown",e=>{if(e.key==="f"||e.key==="F"){toggleFS();return}
+    try{window.opener.document.dispatchEvent(new window.opener.KeyboardEvent("keydown",{key:e.key}))}catch(err){}});
+  ready();
+}
 
 /* ================= LANDING / JOIN ================= */
 function landing(err){
@@ -349,7 +376,7 @@ function landing(err){
       h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
       h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v17")));
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v18")));
   (hashCode?name:code).focus();
 }
 
@@ -396,9 +423,12 @@ function hostSetup(){
 /* ================= HOST GAME ================= */
 function openRoom(qs,limit,clip,mode,tag){
   const G={qs,limit,clip,mode,tag,qi:-1,phase:"lobby",players:new Map(),deadline:0,start:0,tick:null,peer:null,code:"",ytErr:null};
-  keepAwake();
+  keepAwake();fsButton();
+  // projector window opened, closed or reloaded: move the screen view and the music to wherever it now belongs
+  window.onShowReady=()=>{G.showWas=showOpen();try{YTP&&YTP.stopVideo&&YTP.stopVideo()}catch(e){}if(G.code)render()};
+  setInterval(()=>{const o=showOpen();if(o!==!!G.showWas){G.showWas=o;if(G.code)render()}},1000);
   app.replaceChildren(h("p",{class:"muted",style:"text-align:center;margin-top:20vh"},"正在開房間⋯"));
-  window.addEventListener("yterror",e=>{G.ytErr=e.detail;const c=$("#ytmsg");if(c)c.textContent="這支影片不能嵌入播放（錯誤 "+e.detail+"），請主持人手動播放這首。"});
+  window.addEventListener("yterror",e=>{G.ytErr=e.detail;const c=PW().document.getElementById("ytmsg");if(c)c.textContent="這支影片不能嵌入播放（錯誤 "+e.detail+"），請主持人手動播放這首。"});
   function online(p){return Date.now()-p.seen<25000}
   async function create(){
     for(let b=0;b<BROKERS.length;b++){
@@ -462,23 +492,24 @@ function openRoom(qs,limit,clip,mode,tag){
   }
   function playClip(q,full){
     G.ytErr=null;
+    const YTP=PW().getYTP();
     if(!q.vid||!YTP||!YTP.loadVideoById)return false;
     const st=((G.mode==="chorus"||G.mode==="hard")&&q.chorus!=null)?q.chorus:(q.start||0);
     const o={videoId:q.vid,startSeconds:st};if(!full)o.endSeconds=st+(G.clip||G.limit+3);
     try{YTP.loadVideoById(o);YTP.unMute&&YTP.unMute();YTP.setVolume&&YTP.setVolume(100);return true}catch(e){return false}
   }
-  function stopMusic(){try{YTP&&YTP.stopVideo&&YTP.stopVideo()}catch(e){}}
+  function stopMusic(){for(const w of [window,SHOW]){try{const Y=w&&!w.closed&&w.getYTP&&w.getYTP();Y&&Y.stopVideo&&Y.stopVideo()}catch(e){}}}
   async function nextQ(){
     G.qi++;
     if(G.qi>=G.qs.length){stopMusic();G.phase="final";render();pushAll();return}
     for(const p of G.players.values()){p.ans=null;p.last=null}
     const q=G.qs[G.qi];
-    if(q.vid)await loadYT();
+    if(q.vid)await PW().loadYT();
     G.phase="question";G.start=Date.now();G.deadline=G.start+G.limit*1000;
     render();pushAll();
     playClip(q,false);
     clearInterval(G.tick);
-    G.tick=setInterval(()=>{const t=$("#timer");if(t)t.textContent=Math.max(0,Math.ceil((G.deadline-Date.now())/1000));if(Date.now()>=G.deadline&&!G.offAt)reveal()},200);
+    G.tick=setInterval(()=>{for(const t of els("#timer"))t.textContent=Math.max(0,Math.ceil((G.deadline-Date.now())/1000));if(Date.now()>=G.deadline&&!G.offAt)reveal()},200);
   }
   function reveal(){
     if(G.phase!=="question")return;
@@ -491,13 +522,14 @@ function openRoom(qs,limit,clip,mode,tag){
     G.phase="reveal";render();pushAll();
     if(q.vid&&!G.ytErr)playClip(q,true);
   }
-  function renderAnswered(){const el=$("#answered");if(el)el.firstChild.textContent=[...G.players.values()].filter(p=>p.ans!=null).length}
+  function els(sel){return [document,...(showOpen()?[SHOW.document]:[])].map(d=>d.querySelector(sel)).filter(Boolean)}
+  function renderAnswered(){const n=[...G.players.values()].filter(p=>p.ans!=null).length;for(const el of els("#answered"))el.firstChild.textContent=n}
   function stageEl(q,covered){
     const st=h("div",{class:"stage"});
     if(q.vid){
-      setTimeout(()=>mountPlayer(st,covered),0);
+      setTimeout(()=>PW().mountPlayer(st,covered),0);
     }else{
-      parkPlayer();
+      PW().parkPlayer();
       st.style.aspectRatio="auto";st.style.background="transparent";
       st.append(h("div",{class:"cover",style:"position:static;border-radius:16px;padding:28px"},h("div",{},
         covered?h("div",{class:"eq"},h("i"),h("i"),h("i"),h("i"),h("i")):null,
@@ -506,65 +538,79 @@ function openRoom(qs,limit,clip,mode,tag){
     }
     return st;
   }
+  // screen = what the room sees; ctl = host buttons; info = what only the host sees on the console
+  function paint(screen,ctl,info){
+    if(showOpen()){
+      SHOW.document.getElementById("app").replaceChildren(...screen);
+      app.replaceChildren(
+        h("header",{class:"row",style:"justify-content:space-between"},h("div",{},brand(),h("h1",{},"主持人控制台")),
+          h("button",{class:"ghost sm",onclick:()=>{try{SHOW.close()}catch(e){}SHOW=null;G.showWas=false;render()}},"關閉投影視窗")),
+        h("p",{class:"muted"},"投影視窗開著：大家看投影畫面，這裡只有你看得到（包括答案）。"),
+        h("div",{class:"card console"},...info),
+        h("div",{class:"row console-ctl"},...ctl));
+    }else{
+      app.replaceChildren(...screen,
+        h("div",{class:"row",style:"justify-content:flex-end"},h("button",{class:"ghost sm",onclick:openShow,title:"開一個只顯示遊戲畫面的視窗，拖到投影機上"},"🖥 開投影視窗"),...ctl));
+    }
+  }
   function render(){
     const q=G.qs[G.qi];const players=[...G.players.values()];
-    if(G.phase!=="question"&&G.phase!=="reveal")parkPlayer();
+    if(G.phase!=="question"&&G.phase!=="reveal"){parkPlayer();try{showOpen()&&SHOW.parkPlayer()}catch(e){}}
+    const chips=()=>h("div",{class:"chips"},players.length?players.map(p=>h("span",{class:"chip pop"+(online(p)?"":" off")},p.name)):h("p",{class:"muted"},"等待玩家加入⋯"));
+    const opts=(rev)=>{const counts=q.opts.map((_,i)=>players.filter(p=>p.ans&&p.ans.c===i).length);
+      return h("div",{class:"opts"+(q.opts.length>4?" many":"")},q.opts.map((o,i)=>rev
+        ?h("div",{class:"opt o"+i+(i===q.ans?" right pop":" dim")},h("span",{class:"k"},i===q.ans?"✓":KEYS[i]),h("span",{},o),h("span",{class:"cnt"},counts[i]+" 人"))
+        :h("div",{class:"opt o"+i},h("span",{class:"k"},KEYS[i]),h("span",{},o))))};
+    const num=()=>h("span",{class:"qnum"},`第 ${G.qi+1} / ${G.qs.length} 首`);
+    const clock=()=>h("div",{class:"row",style:"justify-content:space-between"},h("div",{class:"timer",id:"timer"},G.limit),h("div",{class:"answered",id:"answered"},h("b",{},"0"),"人已作答"));
     if(G.phase==="lobby"){
       const url=baseURL()+"#"+G.code;const qr=h("div",{class:"qr"});
-      app.replaceChildren(
+      try{new QRCode(qr,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M})}catch(e){qr.remove()}
+      paint([
         h("header",{},brand()),
         h("div",{class:"lobby"},
           h("div",{style:"display:flex;flex-direction:column;gap:10px;min-width:0"},
             h("p",{class:"muted",style:"font-size:1.2rem"},"用手機打開這個網址，輸入房間碼："),
             h("p",{style:"font-weight:900;font-size:1.2rem;overflow-wrap:anywhere"},baseURL()),
             h("div",{class:"bigcode"},G.code)),qr),
-        h("div",{class:"row",style:"justify-content:space-between"},h("h2",{},`已加入 ${players.length} 人`),
-          h("button",{class:"go",disabled:!players.length,onclick:nextQ},`開始（共 ${G.qs.length} 首）`)),
-        h("div",{class:"chips"},players.length?players.map(p=>h("span",{class:"chip pop"+(online(p)?"":" off")},p.name)):h("p",{class:"muted"},"等待玩家加入⋯")));
-      try{new QRCode(qr,{text:url,width:200,height:200,correctLevel:QRCode.CorrectLevel.M})}catch(e){qr.remove()}
+        h("h2",{},`已加入 ${players.length} 人`),chips()],
+        [h("button",{class:"go",disabled:!players.length,onclick:nextQ},`開始（共 ${G.qs.length} 首）`)],
+        [h("p",{},"房間碼 ",h("b",{class:"ccode"},G.code)),h("h2",{},`已加入 ${players.length} 人`),chips()]);
       return;
     }
     if(G.phase==="question"){
-      app.replaceChildren(
-        h("div",{class:"qtop"},h("span",{class:"qnum"},`第 ${G.qi+1} / ${G.qs.length} 首`),brand()),
-        stageEl(q,true),
-        h("div",{class:"row",style:"justify-content:space-between"},
-          h("div",{class:"timer",id:"timer"},G.limit),
-          h("div",{class:"answered",id:"answered"},h("b",{},"0"),"人已作答"),
-          h("div",{class:"row"},q.vid?h("button",{class:"ghost sm",onclick:()=>playClip(q,false)},"再播一次"):null,h("button",{class:"ghost sm",onclick:reveal},"直接公布"))),
-        h("div",{class:"opts"+(q.opts.length>4?" many":"")},q.opts.map((o,i)=>h("div",{class:"opt o"+i},h("span",{class:"k"},KEYS[i]),h("span",{},o)))));
+      paint([h("div",{class:"qtop"},num(),brand()),stageEl(q,true),clock(),opts(false)],
+        [q.vid?h("button",{class:"ghost",onclick:()=>playClip(q,false)},"再播一次"):null,h("button",{class:"go",onclick:reveal},"直接公布")],
+        [num(),h("p",{class:"cans"},"答案：",h("b",{},q.name)),clock()]);
       renderAnswered();return;
     }
     if(G.phase==="reveal"){
-      const counts=q.opts.map((_,i)=>players.filter(p=>p.ans&&p.ans.c===i).length);const isLast=G.qi===G.qs.length-1;
-      app.replaceChildren(
-        h("div",{class:"qtop"},h("span",{class:"qnum"},`第 ${G.qi+1} / ${G.qs.length} 首`),brand()),
-        stageEl(q,false),
-        h("div",{class:"opts"+(q.opts.length>4?" many":"")},q.opts.map((o,i)=>h("div",{class:"opt o"+i+(i===q.ans?" right pop":" dim")},h("span",{class:"k"},i===q.ans?"✓":KEYS[i]),h("span",{},o),h("span",{class:"cnt"},counts[i]+" 人")))),
-        h("div",{class:"row",style:"justify-content:flex-end"},
-          q.vid?h("button",{class:"ghost",onclick:stopMusic},"停止音樂"):null,
-          h("button",{class:"go",onclick:()=>{G.phase="board";render();pushAll()}},"看排行榜"),
-          isLast?null:h("button",{class:"ghost",onclick:nextQ},"下一首")));
+      const isLast=G.qi===G.qs.length-1;const right=players.filter(p=>p.last&&p.last.ok).length;
+      paint([h("div",{class:"qtop"},num(),brand()),stageEl(q,false),opts(true)],
+        [q.vid?h("button",{class:"ghost",onclick:stopMusic},"停止音樂"):null,
+         h("button",{class:"go",onclick:()=>{G.phase="board";render();pushAll()}},"看排行榜"),
+         isLast?null:h("button",{class:"ghost",onclick:nextQ},"下一首")],
+        [num(),h("p",{class:"cans"},"答案：",h("b",{},q.name)),h("p",{},`${right} / ${players.length} 人答對`)]);
       return;
     }
     if(G.phase==="board"){
       const r=ranked().slice(0,5);const isLast=G.qi===G.qs.length-1;
-      app.replaceChildren(
-        h("div",{class:"qtop"},h("h1",{},"目前排行"),brand()),
-        h("div",{class:"board"},r.map((p,i)=>h("div",{class:"brow pop"},h("span",{class:"r"},"#"+(i+1)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)))),
-        h("div",{class:"row",style:"justify-content:flex-end"},h("button",{class:"ghost",onclick:stopMusic},"停止音樂"),h("button",{class:"go",onclick:nextQ},isLast?"公布最終結果":"下一首")));
+      const rows=()=>h("div",{class:"board"},r.map((p,i)=>h("div",{class:"brow pop"},h("span",{class:"r"},"#"+(i+1)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score))));
+      paint([h("div",{class:"qtop"},h("h1",{},"目前排行"),brand()),rows()],
+        [h("button",{class:"ghost",onclick:stopMusic},"停止音樂"),h("button",{class:"go",onclick:nextQ},isLast?"公布最終結果":"下一首")],
+        [num(),rows()]);
       return;
     }
     if(G.phase==="final"){
       const r=ranked();
       const pod=(p,cls,pl)=>p?h("div",{class:"pod pop "+cls},h("span",{style:"font-size:1.8rem"},pl),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)):h("div",{});
-      app.replaceChildren(
+      paint([
         h("div",{class:"qtop"},h("h1",{},"最終結果"),brand()),
         h("div",{class:"podium"},pod(r[1],"p2","🥈"),pod(r[0],"p1","🥇"),pod(r[2],"p3","🥉")),
-        h("div",{class:"board"},r.slice(3).map((p,i)=>h("div",{class:"brow"},h("span",{class:"r"},"#"+(i+4)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score)))),
-        h("div",{class:"row",style:"justify-content:flex-end"},
-          h("button",{class:"ghost",onclick:()=>{for(const p of G.players.values()){p.score=0;p.ans=null;p.last=null}G.qs=buildQuestions(G.qs.map(({name,vid,start,year,chorus})=>({name,vid,start,year,chorus})),true,G.tag);G.qi=-1;G.phase="lobby";render();pushAll()}},"同一群人再玩一次"),
-          h("button",{class:"ghost",onclick:()=>{closeRoom();hostSetup()}},"換歌單、關閉房間")));
+        h("div",{class:"board"},r.slice(3).map((p,i)=>h("div",{class:"brow"},h("span",{class:"r"},"#"+(i+4)),h("span",{class:"nm"},p.name),h("span",{class:"s"},p.score))))],
+        [h("button",{class:"ghost",onclick:()=>{for(const p of G.players.values()){p.score=0;p.ans=null;p.last=null}G.qs=buildQuestions(G.qs.map(({name,vid,start,year,chorus})=>({name,vid,start,year,chorus})),true,G.tag);G.qi=-1;G.phase="lobby";render();pushAll()}},"同一群人再玩一次"),
+         h("button",{class:"ghost",onclick:()=>{closeRoom();hostSetup()}},"換歌單、關閉房間")],
+        [h("p",{},"遊戲結束，冠軍：",h("b",{},r[0]?r[0].name:"—"))]);
     }
   }
   document.addEventListener("keydown",e=>{
@@ -646,6 +692,7 @@ function startPlayer(code,name){
 }
 
 if(!window.mqtt)app.replaceChildren(h("p",{class:"err",style:"margin-top:20vh;text-align:center"},"連線元件載入失敗，請確認網路後重新整理。"));
+else if(location.hash==="#show"&&window.opener)showInit();
 else landing();
 </script>
 </body>
