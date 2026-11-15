@@ -145,3 +145,17 @@ body.show{cursor:default}
 .console .brow{color:var(--panel-ink);background:#f6efe4}
 .console-ctl{justify-content:flex-end}
 .console-ctl button{min-width:140px}
+/* ---- 25th birthday touches ---- */
+.brand::after{content:"25";width:auto;height:auto;background:none;font-family:"Playfair Display",serif;font-style:italic;font-weight:600;color:var(--gold);letter-spacing:0;font-size:1.05em;line-height:1.35;border:1px solid var(--gold);border-radius:99px;padding:0 .5em}
+.pg-25{position:fixed;left:2.2vw;bottom:4vh;z-index:0;pointer-events:none;display:flex;gap:4px}
+.pg-25 span{position:relative;font-family:"Playfair Display",serif;font-weight:600;font-size:96px;line-height:1;color:transparent;
+  background:linear-gradient(155deg,#fff4da 8%,#e6bd72 40%,#b4863c 58%,#f6dea6 80%,#d2a45a);-webkit-background-clip:text;background-clip:text;
+  filter:drop-shadow(0 5px 8px rgba(0,0,0,.4))}
+.pg-25 span::after{content:"";position:absolute;left:50%;top:92%;width:1px;height:60px;background:rgba(240,220,174,.5)}
+@media (max-width:899px){.pg-25{display:none}}
+@media (prefers-reduced-motion:no-preference){
+  .pg-25 span{animation:pg-bob 5s ease-in-out infinite}.pg-25 span+span{animation-delay:-2.2s}
+  @keyframes pg-bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-10px) rotate(3deg)}}
+}
+.pg-confetti i.n{width:auto;height:auto;background:none;font:italic 600 20px "Playfair Display",serif;color:#f0dcae}
+.pg-msg{margin:0;text-align:center;font-family:"Playfair Display",serif;font-style:italic;font-size:1.6rem;color:var(--gold);letter-spacing:.06em}

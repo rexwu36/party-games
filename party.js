@@ -22,6 +22,12 @@
       b.style.scale=String(0.8+(i%3)*0.14);box.appendChild(b)});
     document.body.prepend(box);
   }
+  // a pair of gold foil "2" "5" number balloons bobbing in the corner: he is turning 25
+  function num25(){
+    const box=document.createElement("div");box.className="pg-25";box.setAttribute("aria-hidden","true");
+    for(const d of "25"){const s=document.createElement("span");s.textContent=d;box.appendChild(s)}
+    document.body.prepend(box);
+  }
   let last=0;
   function confetti(n){
     if(reduce||Date.now()-last<2500)return;last=Date.now();
@@ -29,6 +35,7 @@
     for(let i=0;i<n;i++){const c=document.createElement("i");
       c.style.left=Math.random()*100+"%";c.style.background=COLORS[i%COLORS.length];
       if(i%4===0){c.style.width=c.style.height="7px";c.style.borderRadius="50%"}
+      if(i%9===0){c.className="n";c.textContent="25"}
       c.style.setProperty("--dx",(Math.random()*120-60)+"px");c.style.setProperty("--rot",(240+Math.random()*600)+"deg");
       c.style.setProperty("--dur",(3+Math.random()*2.5)+"s");c.style.setProperty("--del",(Math.random()*.8)+"s");
       box.appendChild(c)}
@@ -39,9 +46,10 @@
     const seen=new WeakSet();
     new MutationObserver(()=>{
       const p=document.querySelector(".podium,.status.good");
-      if(p&&!seen.has(p)){seen.add(p);confetti(p.classList.contains("podium")?110:40)}
+      if(p&&!seen.has(p)){seen.add(p);const pod=p.classList.contains("podium");confetti(pod?110:40);
+        if(pod&&!document.querySelector(".pg-msg")){const m=document.createElement("p");m.className="pg-msg";m.textContent="✦ Happy 25th Birthday ✦";p.before(m)}}
     }).observe(document.body,{childList:true,subtree:true});
   }
-  const go=()=>{sparkles();balloons();watch()};
+  const go=()=>{sparkles();balloons();num25();watch()};
   document.readyState==="loading"?document.addEventListener("DOMContentLoaded",go):go();
 })();
