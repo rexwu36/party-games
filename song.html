@@ -63,6 +63,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 [hidden]{display:none!important}
 #yt-park{position:absolute;left:-9999px;top:0;width:320px;height:180px;z-index:5;border-radius:16px;overflow:hidden;background:#000}
 #yt-park iframe,#yt{position:absolute;inset:0;width:100%;height:100%;border:0}
+#yt-park.covered iframe,#yt-park.covered #yt{inset:auto;left:0;top:0;width:356px;height:200px}
 .cover{position:absolute;inset:0;display:grid;place-items:center;text-align:center;background:linear-gradient(135deg,var(--c),var(--bg2));z-index:2;padding:16px}
 .cover .big{font-size:clamp(1.6rem,5vw,3rem);font-weight:900}
 .eq{display:flex;gap:8px;justify-content:center;height:70px;align-items:flex-end;margin-bottom:12px}
@@ -313,7 +314,7 @@ function loadYT(){
   ytReady=new Promise(res=>{
     window.onYouTubeIframeAPIReady=()=>{
       YTP=new YT.Player("yt",{width:"100%",height:"100%",playerVars:{playsinline:1,controls:0,disablekb:1,rel:0,modestbranding:1},
-        events:{onReady:()=>res(YTP),onError:e=>{window.dispatchEvent(new CustomEvent("yterror",{detail:e.data}));try{window.opener&&window.opener.dispatchEvent(new window.opener.CustomEvent("yterror",{detail:e.data}))}catch(_){}}}});
+        events:{onReady:()=>res(YTP),onStateChange:e=>{for(const w of [window,window.opener]){try{w&&w.dispatchEvent(new w.CustomEvent("ytstate",{detail:{s:e.data,src:window}}))}catch(_){}}},onError:e=>{window.dispatchEvent(new CustomEvent("yterror",{detail:e.data}));try{window.opener&&window.opener.dispatchEvent(new window.opener.CustomEvent("yterror",{detail:e.data}))}catch(_){}}}});
     };
     const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";s.onerror=()=>res(null);document.head.append(s);
     setTimeout(()=>res(YTP),12000);
@@ -328,7 +329,7 @@ function placePlayer(){
   const r=stageRef.getBoundingClientRect();
   Object.assign(park.style,{left:(r.left+scrollX)+"px",top:(r.top+scrollY)+"px",width:r.width+"px",height:r.height+"px"});
 }
-function mountPlayer(stage,covered){stageRef=stage;$("#yt-cover").hidden=!covered;if(covered)$("#ytmsg").textContent="";placePlayer()}
+function mountPlayer(stage,covered){stageRef=stage;$("#yt-cover").hidden=!covered;$("#yt-park").classList.toggle("covered",!!covered);placePlayer()}
 function parkPlayer(){stageRef=null;placePlayer()}
 window.addEventListener("resize",placePlayer);
 setInterval(placePlayer,500);
@@ -376,7 +377,7 @@ function landing(err){
       h("div",{style:"text-align:center"},brand(),h("h1",{style:"font-size:2.4rem;margin-top:6px"},"輸入房間碼")),
       h("div",{class:"card"},h("label",{for:"code"},"房間碼",code),h("label",{for:"nick"},"暱稱",name),msg,h("button",{class:"go",onclick:go},"加入遊戲")),
       h("p",{style:"text-align:center"},h("button",{class:"link",onclick:hostSetup},"我是主持人，要開房間")),
-      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v20")));
+      h("p",{class:"muted",style:"text-align:center;font-size:.8rem"},"版本 v21")));
   (hashCode?name:code).focus();
 }
 
@@ -428,7 +429,19 @@ function openRoom(qs,limit,clip,mode,tag){
   window.onShowReady=()=>{G.showWas=showOpen();try{YTP&&YTP.stopVideo&&YTP.stopVideo()}catch(e){}if(G.code)render()};
   setInterval(()=>{const o=showOpen();if(o!==!!G.showWas){G.showWas=o;if(G.code)render()}},1000);
   app.replaceChildren(h("p",{class:"muted",style:"text-align:center;margin-top:20vh"},"正在開房間⋯"));
-  window.addEventListener("yterror",e=>{G.ytErr=e.detail;const c=PW().document.getElementById("ytmsg");if(c)c.textContent="這支影片不能嵌入播放（錯誤 "+e.detail+"），請主持人手動播放這首。"});
+  window.addEventListener("yterror",e=>{G.ytErr=e.detail;const c=PW().document.getElementById("ytmsg");if(c)c.textContent="這支影片不能嵌入播放（錯誤 "+e.detail+"），請主持人手動播放這首。";if(G.waiting)startClock()});
+  const ytMsg=t=>{const c=PW().document.getElementById("ytmsg");if(c&&!G.ytErr)c.textContent=t};
+  window.addEventListener("ytstate",e=>{
+    if(e.detail.src!==PW()||G.phase!=="question")return;
+    const st=e.detail.s;
+    if(st===1){if(G.waiting)startClock();else if(G.bufAt){G.deadline+=Date.now()-G.bufAt;G.bufAt=0}ytMsg("")}
+    else if(st===3&&!G.waiting&&!G.bufAt){G.bufAt=Date.now();ytMsg("音樂緩衝中⋯倒數暫停")}
+  });
+  // the countdown (and the phones' options) start only when the song is really audible
+  function startClock(){
+    G.waiting=false;G.bufAt=0;G.start=Date.now();G.deadline=G.start+G.limit*1000;
+    ytMsg("");pushAll();
+  }
   function online(p){return Date.now()-p.seen<25000}
   async function create(){
     for(let b=0;b<BROKERS.length;b++){
@@ -495,8 +508,12 @@ function openRoom(qs,limit,clip,mode,tag){
     const YTP=PW().getYTP();
     if(!q.vid||!YTP||!YTP.loadVideoById)return false;
     const st=((G.mode==="chorus"||G.mode==="hard")&&q.chorus!=null)?q.chorus:(q.start||0);
-    const o={videoId:q.vid,startSeconds:st};if(!full)o.endSeconds=st+(G.clip||G.limit+3);
-    try{YTP.loadVideoById(o);YTP.unMute&&YTP.unMute();YTP.setVolume&&YTP.setVolume(100);return true}catch(e){return false}
+    G.clipEnd=full?0:st+(G.clip||G.limit+3);
+    try{
+      // reveal: the same video is already loaded and buffered at this point, so just rewind instead of reloading it
+      if(full&&YTP.getVideoData&&YTP.getVideoData().video_id===q.vid){YTP.seekTo(st,true);YTP.playVideo()}
+      else YTP.loadVideoById({videoId:q.vid,startSeconds:st});
+      YTP.unMute&&YTP.unMute();YTP.setVolume&&YTP.setVolume(100);return true}catch(e){return false}
   }
   function stopMusic(){for(const w of [window,SHOW]){try{const Y=w&&!w.closed&&w.getYTP&&w.getYTP();Y&&Y.stopVideo&&Y.stopVideo()}catch(e){}}}
   async function nextQ(){
@@ -505,11 +522,17 @@ function openRoom(qs,limit,clip,mode,tag){
     for(const p of G.players.values()){p.ans=null;p.last=null}
     const q=G.qs[G.qi];
     if(q.vid)await PW().loadYT();
-    G.phase="question";G.start=Date.now();G.deadline=G.start+G.limit*1000;
-    render();pushAll();
-    playClip(q,false);
+    G.phase="question";G.ytErr=null;G.bufAt=0;G.waiting=true;G.loadAt=G.start=Date.now();G.deadline=Infinity;
+    render();
+    if(playClip(q,false))ytMsg("音樂載入中⋯");else startClock();
     clearInterval(G.tick);
-    G.tick=setInterval(()=>{for(const t of els("#timer"))t.textContent=Math.max(0,Math.ceil((G.deadline-Date.now())/1000));if(Date.now()>=G.deadline&&!G.offAt)reveal()},200);
+    G.tick=setInterval(()=>{
+      // very slow network: do not hold the game forever, start the clock after 10 s anyway
+      if(G.waiting&&Date.now()-G.loadAt>10000){startClock();ytMsg("音樂載入很慢，網路可能不穩")}
+      if(G.clipEnd){try{const Y=PW().getYTP();if(Y&&Y.getCurrentTime&&Y.getCurrentTime()>=G.clipEnd){Y.pauseVideo();G.clipEnd=0}}catch(e){}}
+      const left=G.waiting?G.limit:Math.ceil((G.deadline-(G.bufAt||Date.now()))/1000);
+      for(const t of els("#timer"))t.textContent=Math.max(0,left);
+      if(!G.waiting&&!G.bufAt&&Date.now()>=G.deadline&&!G.offAt)reveal()},200);
   }
   function reveal(){
     if(G.phase!=="question")return;
@@ -519,7 +542,7 @@ function openRoom(qs,limit,clip,mode,tag){
       if(p.ans&&p.ans.c===q.ans){const g=Math.round(500+500*Math.max(0,1-p.ans.ms/(G.limit*1000)));p.score+=g;p.last={ok:true,g}}
       else p.last={ok:false,g:0,none:!p.ans};
     }
-    G.phase="reveal";render();pushAll();
+    G.phase="reveal";G.waiting=false;G.clipEnd=0;render();pushAll();
     if(q.vid&&!G.ytErr)playClip(q,true);
   }
   function els(sel){return [document,...(showOpen()?[SHOW.document]:[])].map(d=>d.querySelector(sel)).filter(Boolean)}
